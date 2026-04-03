@@ -1,6 +1,6 @@
 # WebArtifact
 
-Early development version (v0.0-t)
+Early development version (v0.0-a)
 
 WebArtifact is a lightweight browser automation library designed to interact with web browsers programmatically.
 
