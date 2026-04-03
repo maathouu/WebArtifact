@@ -229,11 +229,9 @@ class S:
     #     except Exception:
     #         print(Value)
 
-az = S()
-
-Profil = r"C:\\Users\\mathou\AppData\\Roaming\\Mozilla\\Firefox\\Profiles\\nnfkm13r.default-release"
-
-az.OpenDriver()
-az.OpenBrowser()
-time.sleep(5)
-az.CloseDriver()
+if __name__ == "__main__":
+    az = S()
+    az.OpenDriver()
+    az.OpenBrowser()
+    time.sleep(5)
+    az.CloseDriver()
