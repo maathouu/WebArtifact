@@ -27,17 +27,16 @@ For more information about the structure/function you can check the documentatio
 
 ### Chrome
 
-> Comming not soon
+> Not comming soon
 
 ### Microsoft Edge
 
-> Comming not soon
+> Not comming soon
 
 
 ## Installation
 
 > Not available yet (manual setup required)
-
 
 ## Roadmap
 
