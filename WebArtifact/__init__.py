@@ -1,2 +1,4 @@
 from .WebArtifact import S
-from .WebArtifact import Log
+from .Utility import *
+from .Log import LogManager
+from .Firefox import *

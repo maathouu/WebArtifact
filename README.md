@@ -1,6 +1,6 @@
 # WebArtifact
 
-Early development version (v0.0-a)
+Early development version (v0.0-b)
 
 WebArtifact is a lightweight browser automation library designed to interact with web browsers programmatically.
 
@@ -17,15 +17,21 @@ For more information about the structure/function you can check the documentatio
 
 ## Features
 
-- Launch browser (Firefox)
-- Start driver (Geckodriver)
-- Close browser
-- Stop driver
+### Firefox 
+
 - Basic user settings:
   - Port
   - Firefox path
   - Profile path
   - Geckodriver path
+
+### Chrome
+
+> Comming not soon
+
+### Microsoft Edge
+
+> Comming not soon
 
 
 ## Installation
@@ -36,10 +42,10 @@ For more information about the structure/function you can check the documentatio
 ## Roadmap
 
 - Next Steps
-  - Refactor main class (S → proper naming)
+  - Refactor main class (S -> proper naming)
   - Improve code readability and structure
   - Add proper error handling (try/except)
-  - Add safeguards (e.g. prevent multiple driver instances)
+  - Add safeguards (prevent multiple driver instances)
   - Multi-tab support
   - Multi-instance support
 

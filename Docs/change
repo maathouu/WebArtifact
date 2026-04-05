@@ -1,0 +1,39 @@
+Try have been added to all Subprocess.run with now a special error
+--> Unexpected Error : error.returncode error.stderr
+
+Subprocess.run settings have been reworked too 
+--> deleted useless param and added usefull to upgrade lisibility
+
+Full code have been temporary deleted to totaly rework the main structure
+Some file have been created to devide sector in multiple place and not in only one file
+
+Actually working on the verifying firefox function
+--> firefox profil path manual verifier
+
+Creation of 3 new fonctions in .Utility
+--> SupFLSpace() : delete all space at the start and end of a str value 
+--> ReadIni() : Get .ini file info and set it in a dict
+--> UserSettingsVer() : verif user settings for firefox ( not finished yet, manually verifier comming soon )
+
+New File :
+--> Utility
+    ==> Decompose()
+    ==> SupFLSpace()
+    ==> IsValidApplication()
+    ==> ReadIni()
+--> Firefox
+    ==> UserSettingsVer()
+--> Log
+    ==> LogManager
+        --> Say()
+        --> SayError()
+        --> Console()
+
+WebArtifact :
+--> S
+    --> Firefox()
+
+
+Added a new firefox user settings ( profilname )
+
+

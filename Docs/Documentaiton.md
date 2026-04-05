@@ -1,304 +1,88 @@
 # Code Structure
 
-> Use 'From WebArtifact import *'
+> Use 'From WebArtifact import S'
 
 ## ./WebArtifact.py
 
-
 ### Class S (temporary name)
-
 
 - Basic Info
   - Handles all core functionality of the library.
   - This class will be renamed and better distributed in future versions.
 
 - User Functions
-
-  - __init__
+  
+  - Firefox
 
     - Basic Info
-
-      Create the session and load variable
-
-    - functioning
       
-      Create principal Variable 
-        - $UserData (store users settings in)
-        - $Data
-        - $FirefoxOptions
+      - Select the browser to firefox and driver to geckodriver
+      - Set main settings for the browser and driver
       
-      Initailise log manager with $GLog
-      Verify user settings with ~VerInit()
+    - functionning
+
+      - import Firefox.py to get needed functions
+      - Set User settings function in 'self.UniversalUserData'
+      - Set main settings in 'self.UniversalData'
+      - Load log manager from '.Log' as self.GLog
+      - Verifying User settings function with 'UserSettingsVer()' from '.Firefox'
+        'UserSettingsVer()' return result in 'self.FirefoxOptions'
 
     - Settings
       
       - GeckodriverPath
-        - ="geckodriver.exe"
-        - Path to geckodriver.exe
+        
+        - default value = "geckodriver.exe"
+        - Type Needed = str 
+        - Value Needed = port
+        - Info : port to open geckodriver on
 
-      - FirefoxPath 
-        - =r"C:\\Program Files\\Mozilla Firefox\\firefox.exe"
-        - Path to firefox.exe
+      - FirefoxPath
+
+        - default value = r"C:\Program Files\Mozilla Firefox\firefox.exe"
+        - Type Needed = str
+        - Value Needed = Path
+        - Info : Path to firefox.exe
 
       - ProfilPath
-        - ="$Temp"
-        - Firefox profils path or "$Temp" to use a temporary file ( managed by geckodriver )
-    
+
+        - default value = ""
+        - Type Needed = str
+        - Value Needed = Path
+        - Info : Path to an Firefox profile ( if you set a different ProfilPath and ProfilName ( "Temp" not included ), ProfilName will be selected instead of ProfilPath )
+
+      - ProfilName
+
+        - default value = "Temp"
+        - Type Needed = str
+        - Value Needed = Name
+        - Info : Name of an profile in profiles.ini ( if ProfilName="Temp" : a temporary profil will be created and deleted automatically )
+
       - port
-        - ="4445"
-        - Loopback port used by geckodriver
+
+        - default value = "4445"
+        - Type Needed = str / int
+        - Value Needed = Path
+        - Info : port to open geckodriver on
 
     - Example
 
       - Bot = S()
-      - Bot = S(ProfilPath=r"C:\\Users\\-\AppData\\Roaming\\Mozilla\\Firefox\\Profiles\\-.default-release")
+      - Bot.Firefox(GeckodriverPath=r"E:\PERSO\Python\Projet\WebArtifact\geckodriver.exe",ProfilName="default")
 
     - Error
 
-      > No error in this function
-
-  - OpenDriver
-
-    - Basic Info
-
-        Open the Driver ( geckodriver )
-        --> You need to create a session to use this function
-
-    - functioning
-
-      Verify selected port with ~VerifySocket()
-      launch geckodriver with '$self.UserData[GeckoDriverPath] --port self.UserData[Port]' on $ Driver
-      Wait till driver is launched with ~WaitOpenDriver
-
-    - Settings 
-      
-      > No settings in this function
-
-    - Example
-
-      - Bot = S()
-        Bot.OpenDriver()
-
-    - Error
-      
-      > No error in this function
-
-
-  - OpenBrowser
-
-    - Basic Info
-
-      Open the Browser ( firefox )
-      --> You need to create a session and open the driver to use this function
-
-    - functioning
-      
-      Send launching request with ~RequestPost http://localhost:$UserData[Port]/session , {"capabilities": {"alwaysMatch": {"browserName": "firefox","moz:firefoxOptions":$FirefoxOptions}}}
-      Set $Data[SessionID] with response of request
-      Turn $Data[BrowserOpen] to True
-      
-    - Settings
-
-      > No settings in this function
-
-    - Example 
-      - Bot = S()
-        Bot.OpenDriver()
-        Bot.OpenBrowser()
-    
-    - Error
-      
-      > No error in this function
-
-  - CloseDriver
-  
-    - Basic Info
-
-      Close the Driver ( geckodriver ) and Browser ( firefox )
-      --> You need to create a session and open the driver to use this function
-
-
-    - functioning
-
-      Close Browser if opened with ~CloseBrowser
-      Send stop request to driver
-      Wait till it stop
-
-    - Settings 
-
-      > No settings in this function
-    
-    - Example 
-      - Bot = S()
-        Bot.OpenDriver()
-        Bot.OpenBrowser()
-        Bot.CloseDriver()
-
-      - Bot = S()
-        Bot.OpenDriver()
-        Bot.CloseDriver()
-
-    - Error
-
-      > No error in this function
-
-  - KillDriver
-  
-    - Basic Info
-
-      Kill the Driver ( geckodriver ) and Browser ( firefox )
-      --> You need to create a session and open the driver to use this function
-
-    - functioning
-
-      Close Browser if opened with ~CloseBrowser
-      Kill proc
-
-    - Settings 
-
-      > No settings in this function
-    
-    - Example 
-      - Bot = S()
-        Bot.OpenDriver()
-        Bot.OpenBrowser()
-        Bot.KillDriver()
-
-      - Bot = S()
-        Bot.OpenDriver()
-        Bot.KillDriver()
-
-    - Error
-
-      > No error in this function
-
-  - KillDriver
-  
-    - Basic Info
-
-      close the browser
-      --> You need to create a session / open the driver and open the browser to use this function
-
-    - functioning
-
-      send delete request with $Data[SessionID]
-      set Data[BrowserOpen] to False
-
-    - Settings 
-
-      > No settings in this function
-    
-    - Example 
-      - Bot = S()
-        Bot.OpenDriver()
-        Bot.OpenBrowser()
-        Bot.CloseBrowser()
-
-    - Error
-
-      > No error in this function
-
+      > 'UserSettingsVer()' from '.Firefox'
+      > 'IsValidApplication()' from '.Utility' by using 'UserSettingsVer()'
 
 - Programm Functions
 
-  - VerInit
-
-    - functioning
-      
-      Verify Some $UserData settings one by one
-        - Geckodriver path with ~IsValidApplication
-        - Firefox path with ~IsValidApplication
-          Add firefox path in $FirefoxOptions
-        - ProfilPath
-          if $Temp -> Nothing
-          else -> verify with '$UserData[FirefoxPath] -profile $UserData[ProfilPath] -headless -no-remote' and add profil path to $FirefoxOptions
-
-    - Settings
-
-      > No settings in this function
-
-    - Error
-      
-      - 'Profile cannot be used by Firefox' if profil path isn't valid
-
-  - VerifySocket
-
-    - functioning
-      
-      Extract socket info with 'netstat -ano | findstr : self.UserData[Port]'
-      Verify if port is used by another application with 'taskkill /PID €PID /F'
-      Shut down last Geckodriver proc if already launched
-
-    - Settings
-
-      > No settings in this function
-
-    - Error
-      
-      - 'Another application is already using this port (Name)' if an application is already using the port on TCP and isn't geckodriver
-      - 'Another application is already using this port (Protocol)' if an UDP protocol is already using the port
-      - '--> Unexpected Error : €SubprocessResult.stderr \n ≠≠> €SubprocessResult.stdout' Unexpected Error (surely if the programm can't kill the last geckodriver proc)
-
-  - WaitOpenDriver
-
-    - functioning
-      
-      Try to create a connection with driver port each 0.1 seconds
-      return time taken
-
-    - Settings 
-
-      > No settings in this function
-
-    - Error
-      
-      - 'GeckoDriver took too long time to launch : $Data[OpenDriverTimeout] s' if time taken > $Data[OpenDriverTimeout]
-
-  - RequestPost
-
-    - functioning
-      
-      post request with given link and data
-      return response
-
-    - Settings 
-
-      - link
-        - loopback driver link
-
-      - data
-        - format : json
-
-    - Error
-      
-      - 'Session Response havn t a valid statu_code : €TempSessionResponse.status_code \n≠≠> €TempSessionResponse.text' if request code != 200
-
-  - IsValidApplication
-
-    - functioning
-      
-      Verify if path to the application exist
-      Extract version of the application with '€ApplicationPath --version'
-      Verify if the application name is in the €SubprocessResult
-
-    - Settings 
-
-      - ApplicationPath
-        - path to the application (given by the user)
-
-      - data
-        - application name (given by the programme)
-
-    - Error
-      
-      - '--> << €ApplicationPath >> isn't a valid Path' if application path isn't valid
-      - '--> Unexpected Error : €SubprocessResult.stderr \n≠≠> €SubprocessResult.stdout' Unexpected Error
-      - '--> TempLine isn't << €ApplicationName >>' if given application path isn't the the asked application
-      - '--> << €ApplicationPath >> isn't a valid €ApplicationName  Version/Apllication' if given application path isn't a valid application at all
+> No function yet
 
 
-### Class Log
+## ./Log.py
 
+### Class LogManager
 
 - Basic Info
   - Simple log manager
@@ -314,22 +98,28 @@
 
     - functioning
 
-      Set $Save to €save 
+      Set self.Save to 'save' 
       Create 'Log' folder in the repertory
-      Create a log file if €save = 'console'
-      --> 'Log/%Y-%m-%d_%H:%M:%S.log' if mode = 'normal'
+      Create a log file if 'self.save' == "console"
+      --> 'Log/%Y-%m-%d_%H:%M:%S.log' if 'mode' == "normal"
       --> 'Log/Test.log'
 
     - Settings
 
       - mode
-        - ='normal'
-        - can be 'normal' or 'test' : change the log file name
+
+        - default value = "normal"
+        - Type Needed = "normal" / "test"
+        - Value Needed = name
+        - Info : Change the log file name ( only work if 'self.save' in ("file","both"))
 
       - save
-        - ='console'
-        - can be 'console' / 'file' / 'both' : change outpout mode
-          - file : create a file and write output in
+
+        - default value = "console"
+        - Type Needed = "console" / "file" / "both"
+        - Value Needed = name
+        - Info : Change the Output mode according to value
+          - create a file and write output in
           - console : write output directly in console
           - both : set the outpout in the file and console
       
@@ -342,6 +132,9 @@
 
       > No error in this function
 
+  ===================
+  
+  
   - Say
 
     - Basic Info 
