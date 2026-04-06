@@ -1,7 +1,7 @@
 import os
 import subprocess
 
-def Decompose(Text):
+def Decompose(Text:str) -> list:
     Start = 0
     Result= []
     Index = 0
@@ -17,7 +17,7 @@ def Decompose(Text):
         Result.append(Text[Start:Index])
     return Result
 
-def SupFLSpace(Text):
+def SupFLSpace(Text:str) -> str:
     if len(Text) > 1:
         Index = 0
         while Text[Index] == " " and Index < len(Text):
@@ -30,21 +30,19 @@ def SupFLSpace(Text):
     else:
         return Text
     
-def IsValidApplication(LogModule,ApplicationPath,ApplicationName):
+def IsValidApplication(LogModule,ApplicationPath:str,ApplicationName:str) -> None:
         if not os.path.isfile(ApplicationPath):                                                                                     # Verifie que le fichier existe bien
             LogModule.SayError(ApplicationPath+" isn't a valid Path")
-        try:
-            SubprocessResult = subprocess.run([ApplicationPath, "--version"],capture_output=True,text=True)                         # Verifie que le fichier specifié est reelement une application
-            if SubprocessResult.returncode != 0:
-                LogModule.SayError("Unexpected Error : "+SubprocessResult.stderr+"\n≠≠>",SubprocessResult.stdout)
-            TempLine = SubprocessResult.stdout.splitlines()[0]
-            if ApplicationName not in TempLine.lower():                                                                             # Verifie que le nom de l'application ets bien présent dans la reponse
-                LogModule.SayError(""+TempLine+" isn't "+ApplicationName)
-            LogModule.Say("--> "+TempLine)
-        except subprocess.CalledProcessError as T:
-            LogModule.SayError("Unexpected Error : returned with code "+T.returncode+"\n≠≠> "+T.stderr)
+        SubprocessResult = subprocess.run([ApplicationPath, "--version"],capture_output=True,text=True)                         # Verifie que le fichier specifié est reelement une application
+        if SubprocessResult.returncode != 0:
+            LogModule.SayError("Unexpected Error : "+SubprocessResult.stderr+"\n≠≠>"+SubprocessResult.stdout)
+        TempLine = SubprocessResult.stdout.splitlines()[0]
+        if ApplicationName not in TempLine.lower():                                                                             # Verifie que le nom de l'application ets bien présent dans la reponse
+            LogModule.SayError(TempLine+" isn't "+ApplicationName)
+        LogModule.Say("--> "+TempLine)
 
-def ReadIni(LogModule,FilePath):
+
+def ReadIni(LogModule,FilePath:str) -> dict:
     result = {}
     with open(FilePath,"r") as f:
         File = f.readlines()

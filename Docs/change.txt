@@ -1,0 +1,14 @@
++-- WebArtifact
+      |    +-- Docs
+      |    |    +-- change.txt
+      |    |    +-- HardDocumentation.md
+      |    |    +-- SimpleDocumentation.md
+      |    +-- WebArtifact
+      |    |    +-- __init__.py
+      |    |    +-- Firefox.py
+      |    |    +-- Log.py
+      |    |    +-- Utility.py
+      |    |    +-- WebArtifact.py
+      |    +-- .gitignore
+      |    +-- LICENSE
+      |    +-- README.md

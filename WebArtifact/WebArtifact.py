@@ -2,8 +2,7 @@
 # import subprocess
 # import time
 # import socket
-# import sys
-# import os
+import sys
 
 from .Log import LogManager
 
@@ -11,26 +10,35 @@ from .Log import LogManager
     
             
 class S:
-    def Firefox(self,GeckodriverPath="geckodriver.exe",FirefoxPath=r"C:\Program Files\Mozilla Firefox\firefox.exe",ProfilPath="",ProfilName="Temp",port="4445"):
-        
-        from .Firefox import UserSettingsVer
+    def __init__(self):
+        self.Data = {
+            "OpenDriverTimeout":5,
+            "BrowserOpen":False
+        }
+        self.Browsers = {
+            "Firefox":{},
+            "Chrome":{},
+            "Microsoft":{}
+        }
+        self.GLog = LogManager(mode="test") 
+        self.GLog.Say("Log module loaded\n")
 
-        self.UniversalUserData = {
+    def Firefox(self,GeckodriverPath="geckodriver.exe",FirefoxPath=r"C:\Program Files\Mozilla Firefox\firefox.exe",ProfilPath="",ProfilName="default",Port="4445",SessionName="$"):
+        
+        if "WebArtifact.Firefox" not in sys.modules:
+            from .Firefox import FirefoxManager
+        if SessionName == "$":
+            SessionName = str(len(self.Browsers["Firefox"]))
+
+        self.GLog.Say(f"Creating a new Firefox session : {SessionName}\n")
+        self.Browsers["Firefox"][SessionName] = FirefoxManager({
             "DriverPath":GeckodriverPath,
             "BrowserPath":FirefoxPath,
             "ProfilPath":ProfilPath,
             "ProfilName":ProfilName,
-            "Port":port
-        }
-        self.UniversalData = {
-            "OpenDriverTimeout":5,
-            "BrowserOpen":False
-        }
-
-        self.GLog = LogManager(mode="test") 
-        self.GLog.Say("Log module loaded\n")
-        self.GLog.Say("Firefox webdriver selected")
-        self.FirefoxOptions = UserSettingsVer(self.GLog,self.UniversalUserData)
+            "Port":Port
+        },self.GLog
+        )
 
 
     # def OpenDriver(self):

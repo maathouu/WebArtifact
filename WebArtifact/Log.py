@@ -15,7 +15,7 @@ class LogManager:
             with open(self.File,"w") as TempFile:
                 TempFile.write("")
 
-    def Say(self,message):
+    def Say(self,message=""):
         ActualTime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())                                                           # Affiche la date et l'heure de chaque action
         if self.Save == "file":
             with open(self.File, "a") as File:
@@ -23,15 +23,10 @@ class LogManager:
         else:
             print(f"[{ActualTime}] : {message}")
     
-    def SayError(self,message):
-        ActualTime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())                                                           # Affiche la date et l'heure de chaque action
-        if self.Save == "file":
-            with open(self.File, "a") as File:
-                File.write(f"[{ActualTime}] : ≠≠> {message}\n")
-        else:
-            print(f"[{ActualTime}] : {message}")
+    def SayError(self,ErrorMessage=""):
+        self.Say("≠≠> "+ErrorMessage)
         
-        raise Exception(message)
+        raise Exception(ErrorMessage)
 
     def Console(self,message):
         print(message)
