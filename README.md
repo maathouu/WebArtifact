@@ -1,6 +1,6 @@
 # WebArtifact
 
-Early development version (v0.0-b)
+Early development version (v0.0-r)
 
 WebArtifact is a lightweight multi browser automation library designed to interact with web browsers programmatically.
 Created to allow interaction with multiple sessions from multiple browsers using the same module in the same time
@@ -29,7 +29,6 @@ For more information about the structure/function you can check the HardDocument
   - Profile path
   - Profil Name
   - Geckodriver path
-  - SessionName
 
 ### Chrome
 
@@ -46,47 +45,26 @@ For more information about the structure/function you can check the HardDocument
 
 ## News
 
-- Basic Added Functionabilities 
-  - Create multiple session in the same time 
-  - User settings checker beta finished
-
-- Reworked on the core structure
-  - New File and class
-    - ./Firefox.py
-    - ./Log.py
-    - ./Utility.py
-    - ./Docs/SimpleDocumentation.md
-
-- Subprocess.run settings have been reworked too : deleted useless param and added usefull to upgrade lisibility
-
-- Full code have been temporary deleted to totaly rework the main structure : Some file have been created to devide sector in multiple place and not in only one file
-
-- Creation of 3 new fonctions in .Utility
-  - SupFLSpace() : delete all space at the start and end of a str value 
-  - ReadIni() : Get .ini file info and set it in a dict
-  - UserSettingsVer() : verif user settings for firefox
+- First Official Release Version of WebArtifact
 
 ## Roadmap
 
 - Comming Soon :
   - Improve stability on the current code
   - Improve current code readability and structure
-  - Add Temporary general error handling 
+  - Improve Logging system ( color and lisibility )
 
 - Next Steps
   - Refactor main class (S -> proper naming)
-  - Add proper error handling 
-  - Multi-tab support
-  - Multi-instance support
-  - Rework lisibility of HardDocumentation
-  - Do SimpleDocumentation 
+  - Conitnue actual error handling 
+  - Rework/Do Documentation (Error.md / HardDocumentation.md / SimpleDocumentation.md)
 
 - Future Goals
   - Advanced configuration system
-  - Full logging system
   - Robust error handling system
   - Interaction API (tabs, elements, navigation)
-
+  - Multi-tab support
+  - Multi-instance support
 
 ## Disclaimer
 

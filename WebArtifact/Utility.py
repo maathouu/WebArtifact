@@ -31,14 +31,13 @@ def SupFLSpace(Text:str) -> str:
         return Text
     
 def IsValidApplication(LogModule,ApplicationPath:str,ApplicationName:str) -> None:
-        if not os.path.isfile(ApplicationPath):                                                                                     # Verifie que le fichier existe bien
-            LogModule.SayError(ApplicationPath+" isn't a valid Path")
-        SubprocessResult = subprocess.run([ApplicationPath, "--version"],capture_output=True,text=True)                         # Verifie que le fichier specifié est reelement une application
-        if SubprocessResult.returncode != 0:
-            LogModule.SayError("Unexpected Error : "+SubprocessResult.stderr+"\n≠≠>"+SubprocessResult.stdout)
+        try:
+            SubprocessResult = subprocess.run([ApplicationPath, "--version"],capture_output=True,text=True)                         # Verifie que le fichier specifié est reelement une application
+        except Exception as E:
+            LogModule.SayError(E,("Utility","IsValidAppli"),path=ApplicationPath)
         TempLine = SubprocessResult.stdout.splitlines()[0]
         if ApplicationName not in TempLine.lower():                                                                             # Verifie que le nom de l'application ets bien présent dans la reponse
-            LogModule.SayError(TempLine+" isn't "+ApplicationName)
+            LogModule.SayError("WrongAppliName",("Utility","IsValidAppli"),Result=TempLine.lower(),AppliNeeded=ApplicationName)
         LogModule.Say("--> "+TempLine)
 
 
@@ -59,6 +58,14 @@ def ReadIni(LogModule,FilePath:str) -> dict:
                 result[ActualSection][Line[0]] = Line[1]
     return result
 
-
+def IsValidPort(LogModule,Port) -> int:
+    try:
+        Port = int(Port)
+    except Exception as E:
+        LogModule.SayError(E,("Utility","IsValidPort"))
+    if not 1024 < Port < 65536:
+        LogModule.SayError("InvalidRange",("Utility","IsValidPort"),port=Port)
+    LogModule.Say("--> "+str(Port))
+    return Port
 
 

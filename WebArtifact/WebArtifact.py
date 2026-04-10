@@ -10,7 +10,7 @@ from .Log import LogManager
     
             
 class S:
-    def __init__(self):
+    def __init__(self) -> None:
         self.Data = {
             "OpenDriverTimeout":5,
             "BrowserOpen":False
@@ -23,14 +23,16 @@ class S:
         self.GLog = LogManager(mode="test") 
         self.GLog.Say("Log module loaded\n")
 
-    def Firefox(self,GeckodriverPath="geckodriver.exe",FirefoxPath=r"C:\Program Files\Mozilla Firefox\firefox.exe",ProfilPath="",ProfilName="default",Port="4445",SessionName="$"):
+    def Firefox(self,GeckodriverPath:str="geckodriver.exe",FirefoxPath:str=r"C:\Program Files\Mozilla Firefox\firefox.exe",ProfilPath:str="",ProfilName:str="Temp",Port="4445",SessionName:str="$"):
         
+        self.GLog.Changecategory("None")
         if "WebArtifact.Firefox" not in sys.modules:
             from .Firefox import FirefoxManager
         if SessionName == "$":
             SessionName = str(len(self.Browsers["Firefox"]))
 
         self.GLog.Say(f"Creating a new Firefox session : {SessionName}\n")
+        self.GLog.Changecategory(("Firefox profil verif","Incorrect Firefox User Settings"))
         self.Browsers["Firefox"][SessionName] = FirefoxManager({
             "DriverPath":GeckodriverPath,
             "BrowserPath":FirefoxPath,

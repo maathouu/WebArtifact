@@ -12,3 +12,32 @@
       |    +-- .gitignore
       |    +-- LICENSE
       |    +-- README.md
+
+
+- Basic Added Functionabilities 
+  - Create multiple session at the same time with differents user settings
+  - User settings checker alpha finished
+
+- Reworked on the core structure
+  - New File and class
+    - ./Firefox.py
+    - ./Log.py
+    - ./Utility.py
+    - ./Docs/SimpleDocumentation.md
+    - ./Docs/Error.md
+
+- Subprocess.run settings have been reworked too : deleted useless param and added usefull to upgrade lisibility
+
+- Full code have been temporary deleted to totaly rework the main structure : Some file have been created to devide sector in multiple place and not in only one file
+
+- Creation of 4 new fonctions in .Utility
+  - SupFLSpace() : delete all space at the start and end of a str value 
+  - ReadIni() : Get .ini file info and set it in a dict
+  - UserSettingsVer() : verif user settings for firefox
+  - IsValidPort() : verif value of port
+
+- Fully reworked Error System
+  - All error are centralised in self.ErrorData in the LogManager
+  - Custom Error / Common error can be displayed
+  - New error class (in developpement)
+  
