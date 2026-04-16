@@ -4,8 +4,25 @@ import os
 import json
 import subprocess
 
+class ConsoleColor:
+    HEADER = '\033[95m'
+    
+    CYAN = '\033[96m'                   # Finished function
+    GREEN = '\033[92m'                  # Actual category
+    RED = '\033[31m'                    # Error
+    YELLOW = '\033[33m'                 # Warning / import info
+    BLUE = '\033[34m'                   # Starting new function
+    PURPLE = '\033[35m'                 # User Settings
+    PINK = '\033[38;2;255;105;180m'     # Global Settings
+    ORANGE = '\033[38;2;255;165;0m'     # Value calculated by the function ( like time )
+ 
+    END = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+
 class LogManager:                                                                                                      
-    def __init__(self,mode="normal",save="console"):                                                                                # save="console" : retranscrit dans la console / save="file" : retranscrit dans un fichier
+    def __init__(self,mode="normal",save="console"):
         # sys.excepthook = self.CustomError
         self.ErrorData = {
             "Layout":{
@@ -25,18 +42,43 @@ class LogManager:
                             "Info":"Failed to find profil directory"
                         },
                         "Info":FirefoxVerifProfil
+                    },
+                    "OpenDriver":{
+                        "Driver":{
+                            "Info":"Failed to luanch geckodriver"
+                        },
+                        "Info":FirefoxDriver
                     }
                 },
                 "Utility":{
                     "IsValidAppli":{
-                        "WrongAppliName":"Incorrect Application name : '{Result}'\nApplication needed : '{AppliNeeded}'",
+                        "WrongAppliName":"Incorrect Application name :\nApplication = {Result}\nApplication needed : '{AppliNeeded}'",
                         "Info":"Invalid Application Path/Name"
                     },
                     "IsValidPort":{
-                        "InvalidRange":"Invalid port range :\nValue needed = 1024 < Port < 65536\nValue got = {port}",
+                        "InvalidRange":"Invalid port range :\nValue needed = 1024 < Port < 65536\nPort set = {port}",
+                        "AlreadyUsed":"Port already used :\nPort Used by this object = {portused}\nPort set = {port}",
                         "Info":"Invalid Port"
                     },
+                    "VerifySocket":{
+                        "OtherApplication":"Another application is already using this port:\nPort = {port}\nOther application = {data}",
+                        "WrongProtocol":"An UDP protocol is already using this port:\nPort = {port}\nOther application = {data}",
+                        "UsedSessionPort":"Another session is already using this port:\nPort = {port}\nUsedPort = {usedport}\nSession = {data}\n",                        
+                        "NoShutdown":"Another geckodriver proc who's not managed by this object is already using this port:\nPort = {port}\nSession = {data}",
+                        "Info":"Invalid Socket"
+                    },
+                    "WaitOpenDriver":{
+                        "TooLong":"{driver} took too long time too luanch : \nTime took= {time}\nTimeout = {timemax}",
+                        "Info":"Invalid time to open driver"
+                    },
                     "Info":Utility
+                },
+                "Global":{
+                    "Session":{
+                        "NoSession":"You need to create a session before",
+                        "IncorrectName":"No session named {name} have been created before",
+                        "Info":"Failed to find Session"
+                    }
                 }
             },
             "Public":{
@@ -61,11 +103,11 @@ class LogManager:
                     lambda context , error : context.update({"strerror":error.strerror,"errno":error.errno,"filename":error.filename})
                 ),
                 ValueError: (
-                    "Invalid integer value :\nValue = {value}\nError = {error}",
+                    "Invalid value :\nValue = {value}\nError = {error}",
                     lambda context , error : context.update({"value": context.get("value"),"error": str(error)})
                 ),
                 TypeError: (
-                    "Invalid type for int conversion :\nType = {type}\nError = {error}",
+                    "Invalid type for conversion :\nType = {type}\nError = {error}",
                     lambda context , error : context.update({"type": type(context.get("value")).__name__,"error": str(error)})
                 ),
                 Exception:(
@@ -74,9 +116,12 @@ class LogManager:
                 ),
             }
         }
+        
         self.Save = save
         self.Category = "None"
-        if self.Save=="file":
+        self.ErrorCategory = "None"
+        
+        if self.Save in ("file","both"):
             if not os.path.isdir("Log"):
                 os.makedirs("Log")
             if mode == "normal":
@@ -86,30 +131,41 @@ class LogManager:
             with open(self.File,"w") as TempFile:
                 TempFile.write("")
 
-
     def Changecategory(self,Com):
         self.Category = Com[0]
-        self.Errorcategory = Com[1]
+        self.ErrorCategory = Com[1]
 
-
-    def Say(self,Message="",ErrorMessage="",Pp="",Sp="",mode="Normal"):
-        Prefix = "["+str(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))+"]"                                                           # Affiche la date et l'heure de chaque action
+    def Say(self,*Message,ErrorMessage="",Pp="",Sp="",mode="Normal"):
+        Prefix = ("["+str(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))+"]",ConsoleColor.BOLD)
             
         if mode == "Normal":
-            Prefix += " | "+self.Category+" | : "
+            Prefix = (Prefix," | ",(self.Category,ConsoleColor.GREEN)," | : ")
         elif mode == "Error":
-            Prefix += " || "+Pp+" : "+Sp+" ||"
+            Prefix = (Prefix," || ",(Pp,ConsoleColor.CYAN)," : ",(Sp,ConsoleColor.CYAN)," ||")
+            Message = ()
             for param in ErrorMessage.splitlines():
-                Message += "\n                      "+param
-        else:
-            Prefix = "\n"+Prefix+" | "+self.Category+" | : "
+                Message += ("\n                      ",(param,ConsoleColor.RED))
+        elif mode == "Space":
+            Prefix = ("\n",Prefix," | ",(self.Category,ConsoleColor.GREEN)," | : ")
             
-        if self.Save == "file":
-            with open(self.File, "a") as File:
-                File.write(Prefix+Message+"\n")
-        else:
-            print(Prefix+Message)
+        if self.Save in ("file","both"):
+            RawMessage = ""
+            for word in Prefix+Message:
+                if type(word) != str:
+                    RawMessage += word[0]
+                else:
+                    RawMessage += word
 
+            with open(self.File, "a") as File:
+                File.write(RawMessage+"\n")    
+
+        if self.Save in ("console","both"):
+            for word in Prefix+Message:
+                if type(word) != str:
+                    print(word[1]+word[0]+ConsoleColor.END,end="")
+                else:
+                    print(word,end="")
+            print()
 
     def SayError(self,error,category,**context):
         if len(category) == 3:
@@ -131,14 +187,20 @@ class LogManager:
                 config[1](context,error)
             Message = config[0].format(**context)
 
-        self.Say(ErrorMessage=Message,Pp=self.Errorcategory,Sp=SecondaryPrefix,mode="Error")
-        raise ExceptionClass(self.Errorcategory,SecondaryPrefix,Message)
+        self.Say(ErrorMessage=Message,Pp=self.ErrorCategory,Sp=SecondaryPrefix,mode="Error")
+        raise ExceptionClass(self.ErrorCategory,SecondaryPrefix,Message)
 
 
 
 class FirefoxVerifProfil(Exception):
     def __init__(self,Pp,Sp,Message):
         pass
+
+class FirefoxDriver(Exception):
+    def __init__(self,Pp,Sp,Message):
+        pass
+
+
 
 class Utility(Exception):
     def __iniy__(self,Pp,Sp,Message):

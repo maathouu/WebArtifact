@@ -6,4 +6,6 @@ Ap = r"E:\DOCU\Pro\CV\CV-BUT-2.pdf"
 
 
 az = WebArtifact.S()
-az.Firefox(GeckodriverPath=Gp,ProfilName="def",ProfilPath=Pp,Port=5000)
+az.Firefox(GeckodriverPath=Gp,ProfilName="def",ProfilPath=Pp,Port=4445)
+az.OpenDriver()
+

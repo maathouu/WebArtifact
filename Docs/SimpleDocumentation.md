@@ -66,8 +66,9 @@ browser.Firefox()
 - `Port`            (int | str):    Port used by the driver (default: 4445)
 - `SessionName`     (str | int):    Name used for multi-session management (default: managed by WebArtifact)
 
-
 > Added in version 0.0-b\
 > Changed in version 0.0
 
 ### Error handling
+
+class 

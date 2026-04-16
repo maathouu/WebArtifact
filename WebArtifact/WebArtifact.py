@@ -4,43 +4,83 @@
 # import socket
 import sys
 
-from .Log import LogManager
+from .Log import LogManager,ConsoleColor
 
 
-    
-            
 class S:
     def __init__(self) -> None:
+        
         self.Data = {
             "OpenDriverTimeout":5,
-            "BrowserOpen":False
+            "BrowserOpen":False,
+            "ShutDownOtherSession":True,
+        }
+        self.InternalData = {
+            "UsedPort":[]
         }
         self.Browsers = {
-            "Firefox":{},
-            "Chrome":{},
-            "Microsoft":{}
+
         }
-        self.GLog = LogManager(mode="test") 
-        self.GLog.Say("Log module loaded\n")
+        self.GLog = LogManager(mode="test",save="both") 
+        self.GLog.Say("Log module loaded")
+
 
     def Firefox(self,GeckodriverPath:str="geckodriver.exe",FirefoxPath:str=r"C:\Program Files\Mozilla Firefox\firefox.exe",ProfilPath:str="",ProfilName:str="Temp",Port="4445",SessionName:str="$"):
         
-        self.GLog.Changecategory("None")
+        self.GLog.Changecategory(("None","None"))
         if "WebArtifact.Firefox" not in sys.modules:
             from .Firefox import FirefoxManager
         if SessionName == "$":
-            SessionName = str(len(self.Browsers["Firefox"]))
+            SessionName = str(len(self.Browsers))
+        self.CurrentWorkingSession = SessionName
 
-        self.GLog.Say(f"Creating a new Firefox session : {SessionName}\n")
+        self.GLog.Say("Creating a new Firefox session : ",(SessionName,ConsoleColor.PURPLE),mode="Space")
         self.GLog.Changecategory(("Firefox profil verif","Incorrect Firefox User Settings"))
-        self.Browsers["Firefox"][SessionName] = FirefoxManager({
-            "DriverPath":GeckodriverPath,
-            "BrowserPath":FirefoxPath,
-            "ProfilPath":ProfilPath,
-            "ProfilName":ProfilName,
-            "Port":Port
-        },self.GLog
-        )
+        self.Browsers[SessionName] = (
+            FirefoxManager({
+                "DriverPath":GeckodriverPath,
+                "BrowserPath":FirefoxPath,
+                "ProfilPath":ProfilPath,
+                "ProfilName":ProfilName,
+                "Port":Port
+            },
+            self.GLog,
+            self.Data,
+            self.Comm)
+        ,"Firefox")
+        self.InternalData["UsedPort"].append(str(Port))
+
+
+    def Comm(self):
+        return self.InternalData
+
+
+    def OpenDriver(self,SessionName="$"):
+        
+        if len(self.Browsers) > 0:
+            if SessionName == "$":
+                SessionName = self.CurrentWorkingSession
+            elif SessionName not in self.Browsers:
+                self.GLog.SayError("IncorrectName",("Global","OpenDriver","IncorrectSession"),name=SessionName)             #
+
+            if self.Browsers[SessionName][1] == "Firefox":
+                self.GLog.Changecategory(("Geckodriver luanch","Can't Open Geckodriver"))
+                self.Browsers[SessionName][0].OpenGeckodriver()
+
+            elif self.Browsers[SessionName][1] == "Chrome":
+                None
+
+            elif self.Browsers[SessionName][1] == "MicrosoftEdge":
+                None
+            
+            elif self.Browsers[SessionName][1] == "Opera":
+                None
+        
+        else:
+            self.GLog.SayError("NoSession",("Firefox","OpenDriver","IncorrectSession"))
+
+
+
 
 
     # def OpenDriver(self):

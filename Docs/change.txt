@@ -14,30 +14,18 @@
       |    +-- README.md
 
 
-- Basic Added Functionabilities 
-  - Create multiple session at the same time with differents user settings
-  - User settings checker alpha finished
+Reworked function "Say" in class LogManager 
+  --> It can now display color
+  --> New class "ConsoleColor" to display color with value (ex : BLUE / CYAN / PURPLE) 
 
-- Reworked on the core structure
-  - New File and class
-    - ./Firefox.py
-    - ./Log.py
-    - ./Utility.py
-    - ./Docs/SimpleDocumentation.md
-    - ./Docs/Error.md
+Creation of new main function "OpenDriver" in class S
+  --> calls the browsers function according to sessionname (ex : OpenGeckodriver() for firefox )
 
-- Subprocess.run settings have been reworked too : deleted useless param and added usefull to upgrade lisibility
+Started creation of new function "VerifySocket" in Utility
+  --> can be upgraded by trying to contact late geckodriver proc / 
 
-- Full code have been temporary deleted to totaly rework the main structure : Some file have been created to devide sector in multiple place and not in only one file
-
-- Creation of 4 new fonctions in .Utility
-  - SupFLSpace() : delete all space at the start and end of a str value 
-  - ReadIni() : Get .ini file info and set it in a dict
-  - UserSettingsVer() : verif user settings for firefox
-  - IsValidPort() : verif value of port
-
-- Fully reworked Error System
-  - All error are centralised in self.ErrorData in the LogManager
-  - Custom Error / Common error can be displayed
-  - New error class (in developpement)
+Started creation of new function "WaitOpenDriver" in Utility
+  --> can be upgraded
   
+Started creation of new firefox function "OpenGeckodriver" in class FirefoxManager
+  --> call VerifySocket + try open geckodriver + call  WaitOpenDriver
