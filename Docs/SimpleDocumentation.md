@@ -31,7 +31,7 @@ For more details you can also see HardDocumentation.md
 
 ### How to install / import
 
-For the moment, you can only download the module from [Github](https://github.com/maathouu/WebArtifact/releases/tag/v0.0)
+For the moment, you can only download the module from [Github](https://github.com/maathouu/WebArtifact/releases/tag/v0.1)
 
 After installing WebArtifact, it may be imported into Python code like:
 ```python
@@ -67,7 +67,28 @@ browser.Firefox()
 - `SessionName`     (str | int):    Name used for multi-session management (default: managed by WebArtifact)
 
 > Added in version 0.0-b\
-> Changed in version 0.0
+> Changed in version 0.1-a
+
+#### `OpenDriver()`
+Open the Driver for the selectionned session
+
+```python
+browser.OpenDriver()
+```
+
+**Parameters:**
+-
+-
+-
+-
+**Warning**
+It's a temporary function who will be handled by a new function in the future (`Luanch()`)
+this new function will luanch the driver and luanch a session
+-> Geckodriver can't support multiple session on the same driver unlike chromium drivers
+-> this new function will appear after 
+
+
+> Added in version 0.1-a\
 
 ### Error handling
 

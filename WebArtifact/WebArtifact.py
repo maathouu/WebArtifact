@@ -25,9 +25,9 @@ class S:
         self.GLog.Say("Log module loaded")
 
 
-    def Firefox(self,GeckodriverPath:str="geckodriver.exe",FirefoxPath:str=r"C:\Program Files\Mozilla Firefox\firefox.exe",ProfilPath:str="",ProfilName:str="Temp",Port="4445",SessionName:str="$"):
+    def Firefox(self,GeckodriverPath:str="geckodriver.exe",FirefoxPath:str=r"C:\Program Files\Mozilla Firefox\firefox.exe",ProfilPath:str="",ProfilName:str="Temp",Port="4445",SessionName:str="$",AutomaticPort=False):
         
-        self.GLog.Changecategory(("None","None"))
+        self.GLog.Changecategory("None")
         if "WebArtifact.Firefox" not in sys.modules:
             from .Firefox import FirefoxManager
         if SessionName == "$":
@@ -35,14 +35,15 @@ class S:
         self.CurrentWorkingSession = SessionName
 
         self.GLog.Say("Creating a new Firefox session : ",(SessionName,ConsoleColor.PURPLE),mode="Space")
-        self.GLog.Changecategory(("Firefox profil verif","Incorrect Firefox User Settings"))
+        self.GLog.Changecategory("Firefox profil verif")
         self.Browsers[SessionName] = (
             FirefoxManager({
                 "DriverPath":GeckodriverPath,
                 "BrowserPath":FirefoxPath,
                 "ProfilPath":ProfilPath,
                 "ProfilName":ProfilName,
-                "Port":Port
+                "Port":Port,
+                "AutomaticPort":AutomaticPort
             },
             self.GLog,
             self.Data,
@@ -53,7 +54,7 @@ class S:
 
     def Comm(self):
         return self.InternalData
-
+    
 
     def OpenDriver(self,SessionName="$"):
         
@@ -64,7 +65,7 @@ class S:
                 self.GLog.SayError("IncorrectName",("Global","OpenDriver","IncorrectSession"),name=SessionName)             #
 
             if self.Browsers[SessionName][1] == "Firefox":
-                self.GLog.Changecategory(("Geckodriver luanch","Can't Open Geckodriver"))
+                self.GLog.Changecategory("Geckodriver luanch")
                 self.Browsers[SessionName][0].OpenGeckodriver()
 
             elif self.Browsers[SessionName][1] == "Chrome":

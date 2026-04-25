@@ -14,6 +14,9 @@ Many features are incomplete or unstable
 Breaking changes are very soon expected
 For more information about the structure/function you can check the HardDocumentation or SimpleDocumentation in /Docs
 
+## Installation
+
+> Not available yet (manual setup required)
 
 ## Features
 
@@ -23,12 +26,7 @@ For more information about the structure/function you can check the HardDocument
 
 ### Firefox 
 
-- Basic user settings:
-  - Port
-  - Firefox path
-  - Profile path
-  - Profil Name
-  - Geckodriver path
+- Verification for User settings
 
 ### Chrome
 
@@ -38,28 +36,34 @@ For more information about the structure/function you can check the HardDocument
 
 > Not comming soon
 
+## MAJ
 
-## Installation
+### News (0.0+)
 
-> Not available yet (manual setup required)
+- Totally reworked the error handling
+- Reworked code structure
+- Added more verifications
+- Added color to the log
 
-## News
+- Started to improve stability
+- Started to improve code readability
 
-- First Official Release Version of WebArtifact
+**Comment** Biggest update so far: All core structure had been reworked to allow the project to expand as much as possible
 
-## Roadmap
+### Roadmap
 
-- Comming Soon :
+- Comming Soon (0.0-a):
   - Improve stability on the current code
   - Improve current code readability and structure
-  - Improve Logging system ( color and lisibility )
 
-- Next Steps
+- Next Steps (0.0-b):
   - Refactor main class (S -> proper naming)
-  - Conitnue actual error handling 
   - Rework/Do Documentation (Error.md / HardDocumentation.md / SimpleDocumentation.md)
+  - Continue to improve stability and readability
+  - Add a new function OpenDriver
+  - Add a new function OpenBrowser
 
-- Future Goals
+- Future Goals :
   - Advanced configuration system
   - Robust error handling system
   - Interaction API (tabs, elements, navigation)
