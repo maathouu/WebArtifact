@@ -43,16 +43,16 @@ import WebArtifact as wa
 ### Commands
 
 #### `S()`
-Load the module and main systems variables
+Load the module and main systems variables to use next commands
 
 ```python
 browser = wa.S()
 ```
-> Added in version 0.0-a\
-> Changed in version 0.0
+<span style="color:green">Added in version 0.0.1<br>Changed in version 0.1.0</span>
+
 
 #### `Firefox()`
-Create new firefox session on the module
+Create a new firefox session on the main module
 
 ```python
 browser.Firefox()
@@ -66,8 +66,7 @@ browser.Firefox()
 - `Port`            (int | str):    Port used by the driver (default: 4445)
 - `SessionName`     (str | int):    Name used for multi-session management (default: managed by WebArtifact)
 
-> Added in version 0.0-b\
-> Changed in version 0.1-a
+<span style="color:green">Added in version 0.0.2<br>Changed in version 0.1.0</span>
 
 #### `OpenDriver()`
 Open the Driver for the selectionned session
@@ -87,9 +86,4 @@ this new function will luanch the driver and luanch a session
 -> Geckodriver can't support multiple session on the same driver unlike chromium drivers
 -> this new function will appear after 
 
-
-> Added in version 0.1-a\
-
-### Error handling
-
-class 
+<span style="color:green">Added in version 0.1.0<br></span>

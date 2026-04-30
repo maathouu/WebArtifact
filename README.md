@@ -1,6 +1,6 @@
 # WebArtifact
 
-Early development version (v0.0-r)
+Early development version (0.1.1)
 
 WebArtifact is a lightweight multi browser automation library designed to interact with web browsers programmatically.
 Created to allow interaction with multiple sessions from multiple browsers using the same module in the same time
@@ -38,7 +38,7 @@ For more information about the structure/function you can check the HardDocument
 
 ## MAJ
 
-### News (0.0+)
+### News
 
 - Totally reworked the error handling
 - Reworked code structure
@@ -49,14 +49,15 @@ For more information about the structure/function you can check the HardDocument
 - Started to improve code readability
 
 **Comment** Biggest update so far: All core structure had been reworked to allow the project to expand as much as possible
+> Fore more information you can check Version.md in ./Docs
 
 ### Roadmap
 
-- Comming Soon (0.0-a):
+- Comming Soon :
   - Improve stability on the current code
   - Improve current code readability and structure
 
-- Next Steps (0.0-b):
+- Next Steps :
   - Refactor main class (S -> proper naming)
   - Rework/Do Documentation (Error.md / HardDocumentation.md / SimpleDocumentation.md)
   - Continue to improve stability and readability
@@ -69,6 +70,8 @@ For more information about the structure/function you can check the HardDocument
   - Interaction API (tabs, elements, navigation)
   - Multi-tab support
   - Multi-instance support
+
+> Fore more information you can check Version.md in ./Docs
 
 ## Disclaimer
 

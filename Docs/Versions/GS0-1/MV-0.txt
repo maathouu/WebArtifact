@@ -1,0 +1,9 @@
+Created new Docs file/folder
+--> Each Micro version will now have it's own txt file description
+--> Version.md isn't finished yet (im so bad with markdown, i'm not going to touch it for a while)
+Changed MAJ system
+--> new system is now explained in version.md and is replacing the old ( alpha -> beta -> ...)
+    --> Old file alpha / beta / release have been respectively replaced by 0.0.1 / 0.0.2 / 0.1.0
+Each push on github have a precise name ( {Version} : [Changement])
+
+Commit : {0.1.1} : [A-Docs]

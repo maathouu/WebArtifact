@@ -1,0 +1,26 @@
+Completely reworked error manager
+--> each error will be in it's own error class with it's own parametre
+--> Error code is in developpement (ex 101 = 1 fore firefox / 0 for UserSettings / 1 for invalid name with no path)
+--> Each file call it's referenced error file ( firefox -> firefox)
+  --> error file could me renamed with proper name
+
+--> SayError have been totally reworked
+  --> now it's called in each error at the end of __init__
+  --> it just display the error with the log module
+    --> The GUI could be upgraded
+--> DataError in Log been totally destroyed
+
+==> Error manager have been reworked but not all the raise in the project
+  --> To do
+
+==> New Error class 
+  --> InvalidUserSettings for verifying user settings (Global)
+  --> InvalidSocket for verifying socket before luanch browser (Global)
+
+  --> New UnexpectedError class : can be called in any other class exception and is here to ahndle basic exception error like subprocess with permission error or file not found ect
+    --> Error with directly user settings will be raised with normal error like filenotfound for profilpath, but more special error like profilnotfound for profil/times.json will be handled by unexpectederror in the associated error class
+    
+Reworked function called
+--> All big function ( VerifyUserSettings / VerifySocket ) who's used on multiple browsers / drivers had been grouped together in new file Global.py in the GlobalFunction class
+--> All tiny function ( Decompose / IsValidApplication / WaitOpenDriver / ...) had been grouped together in Global.py in the Utility class
+  --> Started improve each tiny function ( readability / usability / result )
