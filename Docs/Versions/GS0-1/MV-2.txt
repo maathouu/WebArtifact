@@ -1,0 +1,4 @@
+Deleted Pycache folders / l.py / .log files
+--> Next update will not come with useless files 
+
+Commit : {0.1.2} : [D-Folders]
