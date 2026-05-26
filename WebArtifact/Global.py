@@ -3,6 +3,7 @@ import socket
 import subprocess
 import os
 import json
+import re
 
 import requests # Temp
 
@@ -40,13 +41,26 @@ class Utility:
             return Text
         
     def IsValidApplication(ApplicationPath:str,ApplicationName:str,ModuleInfo:tuple) -> bool:
+            if not os.path.isfile(ApplicationPath):
+                raise FileNotFoundError("",f"'{ApplicationPath}' isn't a valid path")
             try:
                 SubprocessResult = subprocess.run([ApplicationPath,"--version"],capture_output=True,text=True)
             except Exception as E:
-                raise ModuleInfo[0](ModuleInfo[1],"",ModuleInfo[2],ModuleInfo[3],0,
-                                    ErrorModule=E,Unexpected="Subprocess",Command=f"{ApplicationPath} --version")
+                raise ModuleInfo[0](ModuleInfo[1],"",
+                                    ModuleInfo[2],ModuleInfo[3],0,ErrorModule=E,Unexpected="Subprocess",
+                                    Command=f"{ApplicationPath} --version")
             TempLine = SubprocessResult.stdout.splitlines()[0]
             return ApplicationName.lower() in TempLine.lower(),TempLine.lower()
+    
+    def GetSocket(Port,ModuleInfo):
+        try:
+            SubprocessResult = subprocess.run("netstat -ano | findstr :"+str(Port),shell=True,capture_output=True,text=True,check=True)
+        except subprocess.CalledProcessError as E:
+            raise ModuleInfo[0](ModuleInfo[1],
+                                f"Analysing port {Port}",
+                                Port,ModuleInfo[2],ModuleInfo[3],0,ErrorModule=E,Unexpected="Subprocess",
+                                Command="netstat -ano | findstr :"+Port)
+        return SubprocessResult.stdout.split("\n")
 
     def ReadIniFile(FilePath:str) -> dict:
         result = {}
@@ -76,30 +90,45 @@ class Utility:
                 time.sleep(0.1)
             except Exception as E:
                 raise ModuleInfo[0](ModuleInfo[1])
-        raise ModuleInfo[0](ModuleInfo[1])  #ToDo
+        raise ModuleInfo[0](ModuleInfo[1],
+                            f"{ModuleInfo[2]} exceded the luanch timeout : {time.time()-TimeStart} > {TimeOut}",
+                            ModuleInfo[2],ModuleInfo[3],0,
+                            TimeTook=str(time.time()-TimeStart),TimeOut=TimeOut)
 
-    def ReadJsonFile(LogModule:object,ErrorModule:object,FilePath:str,Driver:str,ParentModule:str) -> dict:
+    def ReadJsonFile(FilePath:str,ModuleInfo:tuple) -> dict:
         try:
             with open(FilePath, "r") as File:
                 return json.load(File)
         except Exception as E:
-            raise ErrorModule(LogModule,"",Driver,ParentModule,0,ErrorModule=E,Unexpected="File",File=FilePath)
+            raise ModuleInfo[0](ModuleInfo[1],"",
+                                ModuleInfo[2],ModuleInfo[3],0,ErrorModule=E,Unexpected="File",
+                                File=FilePath)
+        
+    def GetFreeRegistredPort(PortRange:tuple,ModuleInfo:tuple):
+        PortsCandidates = [Port for Start,End in PortRange for Port in range(Start,End)]
+        for Port in PortsCandidates:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                try:
+                    s.bind(('', Port))
+                    return Port
+                except OSError:
+                    continue
+        try:
+            SubprocessResult = subprocess.run("netstat -n",capture_output=True)
+        except Exception as E:
+            raise ModuleInfo[0](ModuleInfo[1],
+                                f"Analysing all sockets",
+                                Port,ModuleInfo[2],ModuleInfo[3],0,ErrorModule=E,Unexpected="Subprocess",
+                                Command="netstat -n")
+        return list(set(range(49152, 65535)) - set([int(x) for x in list(set(re.findall(rb"\b\d+\.\d+.\d+.\d+:(\d+)\b", SubprocessResult.stdout)))]))[0] # TM
+        
 
 class GlobalFunction:
     def VerifySocket(LogModule,Port,ShutDownOtherSession,Driver,ParentModule):
         ModuleInfo = (GlobalE.InvalidSocket,LogModule,Driver,ParentModule)
         LogModule.Say(("Verifying port ",ConsoleColor.BLUE),(str(Port),ConsoleColor.PURPLE),mode="Space")
-        try:
-            SubprocessResult = subprocess.run("netstat -ano | findstr :"+str(Port),shell=True,capture_output=True,text=True,check=True)
-        except subprocess.CalledProcessError as E:
-            raise GlobalE.InvalidSocket(LogModule,
-                                        "Analysing port "+Port,
-                                        Port,Driver,ParentModule,0,
-                                        ErrorModule=E,
-                                        Command="netstat -ano | findstr :"+Port) # TT
-        except Exception as E:
-            raise GlobalE.UnexpectedError() # ToDo
-        SubprocessResult = SubprocessResult.stdout.split("\n")
+
+        SubprocessResult = Utility.GetSocket(Port,ModuleInfo)
 
         if SubprocessResult != ['']:
             ProcList = []
@@ -114,11 +143,11 @@ class GlobalFunction:
                         raise GlobalE.InvalidSocket(LogModule,
                                                     f"Getting executable path of PID {DecomposedLine[-1]}",
                                                     Port,Driver,ParentModule,0,ErrorModule=E,
-                                                    Command=f"wmic process where processid={DecomposedLine[-1]} get ExecutablePath",
-                                                    ProcessID=DecomposedLine[-1]) # ToTest
+                                                    Command=f"wmic process where processid={DecomposedLine[-1]} get ExecutablePath",ProcessID=DecomposedLine[-1]) # ToTest
                     except Exception as E:
-                        raise GlobalE.InvalidSocket(LogModule,"",Port,Driver,ParentModule,0,ErrorModule=E,Command=f"wmic process where processid={DecomposedLine[-1]} get ExecutablePath",
-                                                    ProcessID=DecomposedLine[-1])
+                        raise GlobalE.InvalidSocket(LogModule,"",
+                                                    Port,Driver,ParentModule,0,ErrorModule=E,
+                                                    Command=f"wmic process where processid={DecomposedLine[-1]} get ExecutablePath",ProcessID=DecomposedLine[-1])
                     SocketPID = SocketPID.stdout.replace("\r","").replace("\n","")
                     SocketPID = Utility.Decompose(SocketPID)
                     ProcList.append({"Type":DecomposedLine[0],"LocalAdress":DecomposedLine[1],"DistantAdress":DecomposedLine[2],"Statu":(DecomposedLine[3] if DecomposedLine[0] == "TCP" else ""),"PID":DecomposedLine[-1],"Path":(SocketPID[1] if len(SocketPID) > 1 else None)})
@@ -161,7 +190,7 @@ class GlobalFunction:
         if ParentModule == "firefox":
             UserData["FirefoxOptions"] = {"args": []}
         elif ParentModule == "chrome":
-            ...
+            ... # ChromiumUpdate
 
         UsedPort = Comm()["UsedPort"]
 
@@ -179,36 +208,40 @@ class GlobalFunction:
         if ParentModule == "firefox":
             UserData["FirefoxOptions"]["binary"] = UserData["BrowserPath"]
         elif ParentModule == "chrome":
-            ...
+            ... # ChromiumUpdate
         
         LogModule.Say(("Verifying Port",ConsoleColor.BLUE),mode="Space") 
-        try:
-            Port = int(UserData["Port"])
-        except ValueError as E:
-            raise GlobalE.InvalidUserSettings(LogModule,
-                                            f"Can't convert '{Port}' to an int value",
-                                            Driver,ParentModule,0,ErrorModule=E,
-                                            DetailedContext=f"ValueError : '{Port}' type is '{type(Port)}' and can't be an int value",
-                                            Port=Port)
-        except OverflowError as E:
-            raise GlobalE.InvalidUserSettings(LogModule,
-                                            f"Can't convert '{Port}' to an int value",
-                                            Driver,ParentModule,0,ErrorModule=E,
-                                            DetailedContext=f"OverflowError : '{Port}' is an too hight number to be converted",
-                                            Port=Port)
-        if not 1024 < Port < 65536:
-            raise GlobalE.InvalidUserSettings(LogModule,
-                                            f"Incorrect Port number selected",
-                                            Driver,ParentModule,0,
-                                            DetailedContext=f"Port need to be between 1024 and 65536 not included",
-                                            Port=Port)
-        if Port in UsedPort:
-            raise GlobalE.InvalidUserSettings(LogModule,
-                                            f"Port '{Port}' is already used in this module by another session",
-                                            Driver,ParentModule,0, 
-                                            DetailedContext=f"'{Port}' is present in {str(UsedPort)}",
-                                            UsedPort=UsedPort,Port=Port)
-        LogModule.Say("--> ",(str(Port),ConsoleColor.PURPLE))
+        if UserData["Port"] != "auto":
+            try:
+                UserData["Port"] = int(UserData["Port"])
+            except ValueError as E:
+                raise GlobalE.InvalidUserSettings(LogModule,
+                                                f"Can't convert '{UserData["Port"]}' to an int value",
+                                                Driver,ParentModule,0,ErrorModule=E,
+                                                DetailedContext=f"ValueError : '{UserData["Port"]}' type is '{type(UserData["Port"])}' and can't be an int value",
+                                                Port=UserData["Port"])
+            except OverflowError as E:
+                raise GlobalE.InvalidUserSettings(LogModule,
+                                                f"Can't convert '{UserData["Port"]}' to an int value",
+                                                Driver,ParentModule,0,ErrorModule=E,
+                                                DetailedContext=f"OverflowError : '{UserData["Port"]}' is an too hight number to be converted",
+                                                Port=UserData["Port"])
+            if not 1024 < UserData["Port"] < 65536:
+                raise GlobalE.InvalidUserSettings(LogModule,
+                                                f"Incorrect Port number selected",
+                                                Driver,ParentModule,0,
+                                                DetailedContext=f"Port need to be between 1024 and 65536 not included",
+                                                Port=UserData["Port"])
+            if UserData["Port"] in UsedPort:
+                raise GlobalE.InvalidUserSettings(LogModule,
+                                                f"Port '{UserData["Port"]}' is already used in this module by another session",
+                                                Driver,ParentModule,0, 
+                                                DetailedContext=f"'{UserData["Port"]}' is present in {str(UsedPort)}",
+                                                UsedPort=UsedPort,Port=UserData["Port"])
+        else:
+            UserData["Port"] = Utility.GetFreeRegistredPort(((4434, 4440), (4461, 4479), (4489, 4499), (4504, 4533)),ModuleInfo)
+
+        LogModule.Say("--> ",(str(UserData["Port"]),ConsoleColor.PURPLE))
 
         LogModule.Say(("Verifying Firefox Profil Name",ConsoleColor.BLUE),mode="Space")
         if UserData["ProfilName"] == "Temp" and UserData["ProfilPath"] == "":
@@ -240,7 +273,7 @@ class GlobalFunction:
                                                             DetailedContext=f"'{UserData['ProfilName']}' isn't present in {FirefoxProfilesIniPath}",
                                                             ProfilName=UserData["ProfilName"],IniProfil=Profiles,IniProfilPath=FirefoxProfilesIniPath)
             elif ParentModule == "Chrome":
-                ...
+                ... # ChromiumUpdate
                     
         else:
             LogModule.Say("--> No profil name set")
@@ -255,7 +288,7 @@ class GlobalFunction:
                         "key4.db"           # Mots de passe 
                     }
                     TimesFilePath = os.path.join(UserData["ProfilPath"],"times.json")
-                    TimesFile = Utility.ReadJsonFile(LogModule,GlobalE.InvalidUserSettings,TimesFilePath,Driver,ParentModule)
+                    TimesFile = Utility.ReadJsonFile(TimesFilePath,ModuleInfo)
  
                     LogModule.Say("--> ",(f"{'times.json':<20}",ConsoleColor.PURPLE),": ",("present",ConsoleColor.BOLD))
                     if ("created","firstUse") != tuple(TimesFile.keys()):
@@ -271,10 +304,11 @@ class GlobalFunction:
                         LogModule.Say("==> ",(f"{TimesFilePath}",ConsoleColor.PURPLE),(" never been luanch before",ConsoleColor.YELLOW))
                 
                 elif ParentModule == "chrome":
-                    ...
+                    ... # ChromiumUpdate
 
             elif os.path.isfile(UserData["ProfilPath"]):
                 raise NotADirectoryError("",f"'{UserData['ProfilPath']}' isn't a directory but a file")
             else:
                 raise FileNotFoundError("",f"'{UserData['ProfilPath']}' isn't a valid path")
         LogModule.Say(("Finished verifying User settings",ConsoleColor.CYAN),mode="Space")
+        return UserData

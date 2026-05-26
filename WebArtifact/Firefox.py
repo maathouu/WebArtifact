@@ -8,24 +8,14 @@ from .Error import FirefoxE
 class FirefoxManager:
 
     def __init__(self,UserData:dict,LogModule,Data,Comm) -> None:
-        """
-        Create session and verify user settings.
         
-        :param GeckodriverPath: path to geckodriver.exe
-        :param FirefoxPath: binary of firefox.exe
-        :param ProfilPath: path to any firefox profil
-        :param ProfilName: name of a profil in profiles.init
-        :param Port: port to open geckodriver
-        :param SessionName: session name
-        
-        :return: somme des deux nombres
-        """
         self.LogModule = LogModule
         self.Data = Data 
         self.Comm = Comm
         self.UserData = GlobalFunction.VerifyUserSettings(self.LogModule,UserData,Comm,"Driver","firefox")
 
     def OpenGeckodriver(self):
+
         GlobalFunction.VerifySocket(self.LogModule,self.UserData["Port"],self.Data["ShutDownOtherSession"],"geckodriver.exe","firefox")
         
         self.LogModule.Say(("Launching Driver : ",ConsoleColor.BLUE),(self.UserData["DriverPath"],ConsoleColor.PURPLE),mode="Space")

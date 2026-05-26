@@ -10,6 +10,5 @@ Pp = r"C:\Users\mathou\AppData\Roaming\Mozilla\Firefox\Profiles\l0fwq2j9.default
 
 
 az = WebArtifact.S()
-az.Firefox(GeckodriverPath=Gp,ProfilPath=Pp,Port=4445)
+az.Firefox(GeckodriverPath=Gp,ProfilPath=Pp)
 # az.OpenDriver()
-

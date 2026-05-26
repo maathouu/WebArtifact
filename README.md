@@ -48,7 +48,7 @@ For more information about the structure/function you can check the HardDocument
 - Started to improve stability
 - Started to improve code readability
 
-**Comment** Biggest update so far: All core structure had been reworked to allow the project to expand as much as possible
+**Comment** : Biggest update so far: All core structure had been reworked to allow the project to expand as much as possible
 > Fore more information you can check Version.md in ./Docs
 
 ### Roadmap

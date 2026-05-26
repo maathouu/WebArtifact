@@ -45,7 +45,7 @@ class InvalidUserSettings(Exception):
                 Unexpected:str=None,
                 **Param) -> None:
         """
-        Param: 
+        Param: ApplicationNeeded / ApplicationGot / ApplicationPath / Port / UsedPort / ProfilName / IniProfil / IniProfilPath / TimeKeys / TimeKeysNeeded
         """
         self.GlobalContext = f"Error while analysing user settings for {Driver} in {ParentModule}"
         if Unexpected == "File":

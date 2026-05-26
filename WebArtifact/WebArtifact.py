@@ -25,8 +25,20 @@ class S:
         self.GLog.Say("Log module loaded")
 
 
-    def Firefox(self,GeckodriverPath:str="geckodriver.exe",FirefoxPath:str=r"C:\Program Files\Mozilla Firefox\firefox.exe",ProfilPath:str="",ProfilName:str="Temp",Port="4445",SessionName:str="$",AutomaticPort=False):
+    def Firefox(self,GeckodriverPath:str="geckodriver.exe",FirefoxPath:str=r"C:\Program Files\Mozilla Firefox\firefox.exe",ProfilPath:str="",ProfilName:str="Temp",Port="auto",SessionName:str="$"):
+        """
+        Create New Firefox session and verify user settings.
         
+        :param GeckodriverPath: path to geckodriver.exe
+        :param FirefoxPath: binary of firefox.exe
+        :param ProfilPath: path to any firefox profil
+        :param ProfilName: name of a profil in profiles.init
+        :param Port: port to open geckodriver
+        :param SessionName: session name
+        
+        :return: somme des deux nombres
+        """
+                
         self.GLog.Changecategory("None")
         if "WebArtifact.Firefox" not in sys.modules:
             from .Firefox import FirefoxManager
@@ -42,8 +54,7 @@ class S:
                 "BrowserPath":FirefoxPath,
                 "ProfilPath":ProfilPath,
                 "ProfilName":ProfilName,
-                "Port":Port,
-                "AutomaticPort":AutomaticPort
+                "Port":Port
             },
             self.GLog,
             self.Data,
@@ -79,6 +90,13 @@ class S:
         
         else:
             self.GLog.SayError("NoSession",("Firefox","OpenDriver","IncorrectSession"))
+
+    def OpenBrowser(self,SessionName="$"):
+        None
+
+
+    def Luanch(self,SessionName="$"):
+        None
 
 
 

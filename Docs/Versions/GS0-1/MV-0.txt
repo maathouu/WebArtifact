@@ -6,4 +6,4 @@ Changed MAJ system
     --> Old file alpha / beta / release have been respectively replaced by 0.0.1 / 0.0.2 / 0.1.0
 Each push on github have a precise name ( {Version} : [Changement])
 
-Commit : {0.1.1} : [A-Docs]
+Commit : {0.1.0} : [A-Docs]
