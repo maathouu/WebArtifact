@@ -5,6 +5,7 @@
 import sys
 
 from .Log import LogManager,ConsoleColor
+from .Error import GlobalE
 
 
 class S:
@@ -16,7 +17,8 @@ class S:
             "ShutDownOtherSession":True,
         }
         self.InternalData = {
-            "UsedPort":[]
+            "UsedPort":[],
+            "SessionName":0
         }
         self.Browsers = {
 
@@ -25,7 +27,7 @@ class S:
         self.GLog.Say("Log module loaded")
 
 
-    def Firefox(self,GeckodriverPath:str="geckodriver.exe",FirefoxPath:str=r"C:\Program Files\Mozilla Firefox\firefox.exe",ProfilPath:str="",ProfilName:str="Temp",Port="auto",SessionName:str="$"):
+    def Firefox(self,GeckodriverPath:str="geckodriver.exe",FirefoxPath:str=r"C:\Program Files\Mozilla Firefox\firefox.exe",ProfilPath:str="",ProfilName:str="Temp",Port="auto",SessionName:str="$") -> None:
         """
         Create New Firefox session and verify user settings.
         
@@ -36,14 +38,25 @@ class S:
         :param Port: port to open geckodriver
         :param SessionName: session name
         
-        :return: somme des deux nombres
-        """
-                
+        """# :return: somme des deux nombres 
+                       
         self.GLog.Changecategory("None")
         if "WebArtifact.Firefox" not in sys.modules:
             from .Firefox import FirefoxManager
+        else:
+            FirefoxManager = sys.modules["WebArtifact.Firefox"].FirefoxManager
+
         if SessionName == "$":
-            SessionName = str(len(self.Browsers))
+            SessionName = self.InternalData["SessionName"]
+            self.InternalData["SessionName"] += 1
+        elif SessionName in self.Browsers:
+            raise GlobalE.BadUtilisation(self.GLog,
+                                         "Session name specified is already used",0,
+                                         DetailedContext=f"'{SessionName}' vae already been created : '{[x for x in self.Browsers]}'",
+                                         SessionNameGot=SessionName,SessionNameUsed=[x for x in self.Browsers]
+
+            )
+            
         self.CurrentWorkingSession = SessionName
 
         self.GLog.Say("Creating a new Firefox session : ",(SessionName,ConsoleColor.PURPLE),mode="Space")
@@ -67,7 +80,7 @@ class S:
         return self.InternalData
     
 
-    def OpenDriver(self,SessionName="$"):
+    def OpenDriver(self,SessionName="$") -> None:
         
         if len(self.Browsers) > 0:
             if SessionName == "$":
@@ -80,12 +93,6 @@ class S:
                 self.Browsers[SessionName][0].OpenGeckodriver()
 
             elif self.Browsers[SessionName][1] == "Chrome":
-                None
-
-            elif self.Browsers[SessionName][1] == "MicrosoftEdge":
-                None
-            
-            elif self.Browsers[SessionName][1] == "Opera":
                 None
         
         else:

@@ -176,9 +176,9 @@ class GlobalFunction:
                                 #     raise GlobalE.InvalidSocket()
                             else:
                                 raise GlobalE.InvalidSocket(LogModule,
-                                                            f"'{os.path.basename(Line["Path"]).lower()}' isn't '{Driver}'",
+                                                            f"'{os.path.basename(Line['Path']).lower()}' isn't '{Driver}'",
                                                             Port,Driver,ParentModule,0,
-                                                            DetailedContext=f"'{os.path.basename(Line["Path"]).lower()}' isn't equal to '{Driver}' or '{os.path.splitext(Driver)[0]}'",
+                                                            DetailedContext=f"'{os.path.basename(Line['Path']).lower()}' isn't equal to '{Driver}' or '{os.path.splitext(Driver)[0]}'",
                                                             ApplicationName=os.path.basename(Line["Path"]).lower(),ProcInfo=Line)
                         elif Line["Statu"] == "TIME_WAIT":
                             None # ToDo
@@ -216,15 +216,15 @@ class GlobalFunction:
                 UserData["Port"] = int(UserData["Port"])
             except ValueError as E:
                 raise GlobalE.InvalidUserSettings(LogModule,
-                                                f"Can't convert '{UserData["Port"]}' to an int value",
+                                                f"Can't convert '{UserData['Port']}' to an int value",
                                                 Driver,ParentModule,0,ErrorModule=E,
-                                                DetailedContext=f"ValueError : '{UserData["Port"]}' type is '{type(UserData["Port"])}' and can't be an int value",
+                                                DetailedContext=f"ValueError : '{UserData['Port']}' type is '{type(UserData['Port'])}' and can't be an int value",
                                                 Port=UserData["Port"])
             except OverflowError as E:
                 raise GlobalE.InvalidUserSettings(LogModule,
-                                                f"Can't convert '{UserData["Port"]}' to an int value",
+                                                f"Can't convert '{UserData['Port']}' to an int value",
                                                 Driver,ParentModule,0,ErrorModule=E,
-                                                DetailedContext=f"OverflowError : '{UserData["Port"]}' is an too hight number to be converted",
+                                                DetailedContext=f"OverflowError : '{UserData['Port']}' is an too hight number to be converted",
                                                 Port=UserData["Port"])
             if not 1024 < UserData["Port"] < 65536:
                 raise GlobalE.InvalidUserSettings(LogModule,
@@ -232,11 +232,11 @@ class GlobalFunction:
                                                 Driver,ParentModule,0,
                                                 DetailedContext=f"Port need to be between 1024 and 65536 not included",
                                                 Port=UserData["Port"])
-            if UserData["Port"] in UsedPort:
+            if str(UserData["Port"]) in UsedPort:
                 raise GlobalE.InvalidUserSettings(LogModule,
-                                                f"Port '{UserData["Port"]}' is already used in this module by another session",
+                                                f"Port '{UserData['Port']}' is already used in this module by another session",
                                                 Driver,ParentModule,0, 
-                                                DetailedContext=f"'{UserData["Port"]}' is present in {str(UsedPort)}",
+                                                DetailedContext=f"'{UserData['Port']}' is present in {str(UsedPort)}",
                                                 UsedPort=UsedPort,Port=UserData["Port"])
         else:
             UserData["Port"] = Utility.GetFreeRegistredPort(((4434, 4440), (4461, 4479), (4489, 4499), (4504, 4533)),ModuleInfo)
@@ -268,7 +268,7 @@ class GlobalFunction:
                             LogModule.Say("==> ",("No Profil named : ",ConsoleColor.YELLOW),(UserData["ProfilName"],ConsoleColor.PURPLE))
                         else:
                             raise GlobalE.InvalidUserSettings(LogModule,
-                                                            f"No profil named '{UserData["ProfilName"]}' for firefox",
+                                                            f"No profil named '{UserData['ProfilName']}' for firefox",
                                                             Driver,ParentModule,0,
                                                             DetailedContext=f"'{UserData['ProfilName']}' isn't present in {FirefoxProfilesIniPath}",
                                                             ProfilName=UserData["ProfilName"],IniProfil=Profiles,IniProfilPath=FirefoxProfilesIniPath)

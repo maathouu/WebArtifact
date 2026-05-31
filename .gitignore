@@ -1,4 +1,6 @@
-l.py                # Luancher file for test
-luancher.py         # Luancher file for test
-**/__pycache__/     # Compiled python file
-*.log               # Log files
+l.py
+luancher.py
+
+__pycache__/
+
+*.log

@@ -61,15 +61,25 @@ class InvalidUserSettings(Exception):
         super().__init__(self.Context)
         LogModule.SayError(self)
 
+class BadUtilisation(Exception):
+    def __init__(self,
+                LogModule:object,
+                Context:str,
+                Line:int,
+                
+                DetailedContext:str=None,
+                **Param) -> None:
+        """
+        Param: SessionNameGot / SessionNameUsed
+        """
+        self.GlobalContext = f"Error with direct use of commands"
+        self.Context = Context
+        self.DetailedContext = DetailedContext
 
-# class InvalidFile(Exception):
-#     def __init__(self,
-#                 LogModule:object,
-#                 File:str,
-#                 Driver:str,
-#                 ParentModule:str,
-#                 Line:int,
-#                 ErrorModule:object) -> None:
+        self.Line = Line
+        self.Param = Param
+        super().__init__(self.Context)
+        LogModule.SayError(self)
         
 
         
