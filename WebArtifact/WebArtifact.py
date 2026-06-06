@@ -18,6 +18,7 @@ class S:
         }
         self.InternalData = {
             "UsedPort":[],
+            "PreUsedPort":[],
             "SessionName":0
         }
         self.Browsers = {
@@ -47,15 +48,18 @@ class S:
             FirefoxManager = sys.modules["WebArtifact.Firefox"].FirefoxManager
 
         if SessionName == "$":
-            SessionName = self.InternalData["SessionName"]
+            SessionName = str(self.InternalData["SessionName"])
             self.InternalData["SessionName"] += 1
-        elif SessionName in self.Browsers:
+        elif type(SessionName) != str:
+            raise GlobalE.BadUtilisation(self.GLog,
+                                         "Custom Session name need to be str value",0,
+                                         DetailedContext=f"'{SessionName}' is an {type(SessionName)} value and not str",
+                                         SessionNameGot=SessionName,SessionNameType=type(SessionName))
+        if SessionName in self.Browsers:
             raise GlobalE.BadUtilisation(self.GLog,
                                          "Session name specified is already used",0,
-                                         DetailedContext=f"'{SessionName}' vae already been created : '{[x for x in self.Browsers]}'",
-                                         SessionNameGot=SessionName,SessionNameUsed=[x for x in self.Browsers]
-
-            )
+                                         DetailedContext=f"SessionName '{SessionName}' have already been created : '{[x for x in self.Browsers]}'",
+                                         SessionNameGot=SessionName,SessionNameUsed=[x for x in self.Browsers])
             
         self.CurrentWorkingSession = SessionName
 
@@ -73,12 +77,16 @@ class S:
             self.Data,
             self.Comm)
         ,"Firefox")
-        self.InternalData["UsedPort"].append(str(Port))
 
 
-    def Comm(self):
-        return self.InternalData
-    
+    def Comm(self,mode="Get",data=None):
+        if mode == "Get":
+            return self.InternalData
+        elif mode == "Set":
+            self.InternalData[data[0]] = data[1]
+        elif mode == "Add":
+            self.InternalData[data[0]].append(data[1])
+
 
     def OpenDriver(self,SessionName="$") -> None:
         

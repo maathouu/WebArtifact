@@ -104,8 +104,11 @@ class Utility:
                                 ModuleInfo[2],ModuleInfo[3],0,ErrorModule=E,Unexpected="File",
                                 File=FilePath)
         
-    def GetFreeRegistredPort(PortRange:tuple,ModuleInfo:tuple):
+    def GetFreeRegistredPort(PortRange:tuple,PortForbidden:tuple,ModuleInfo:tuple) -> int:
         PortsCandidates = [Port for Start,End in PortRange for Port in range(Start,End)]
+        print(PortsCandidates,PortForbidden)
+        PortsCandidates = [Port for Port in PortsCandidates if Port not in PortForbidden]
+        print(PortsCandidates)
         for Port in PortsCandidates:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 try:
@@ -193,6 +196,7 @@ class GlobalFunction:
             ... # ChromiumUpdate
 
         UsedPort = Comm()["UsedPort"]
+        PreUsedPort = Comm()["PreUsedPort"]
 
         LogModule.Say(("Verifying Application Path",ConsoleColor.BLUE),mode="Space")
         for AppliPath,AppliName in ((UserData["DriverPath"],os.path.splitext(Driver)[0]),(UserData["BrowserPath"],ParentModule)):
@@ -232,14 +236,19 @@ class GlobalFunction:
                                                 Driver,ParentModule,0,
                                                 DetailedContext=f"Port need to be between 1024 and 65536 not included",
                                                 Port=UserData["Port"])
-            if str(UserData["Port"]) in UsedPort:
+            if UserData["Port"] in UsedPort:
                 raise GlobalE.InvalidUserSettings(LogModule,
                                                 f"Port '{UserData['Port']}' is already used in this module by another session",
                                                 Driver,ParentModule,0, 
                                                 DetailedContext=f"'{UserData['Port']}' is present in {str(UsedPort)}",
                                                 UsedPort=UsedPort,Port=UserData["Port"])
         else:
-            UserData["Port"] = Utility.GetFreeRegistredPort(((4434, 4440), (4461, 4479), (4489, 4499), (4504, 4533)),ModuleInfo)
+            UserData["Port"] = Utility.GetFreeRegistredPort(((4434, 4440), (4461, 4479), (4489, 4499), (4504, 4533)),PreUsedPort,ModuleInfo)
+
+        if UserData["Port"] in PreUsedPort:
+            LogModule.Say("==> ",("Port ",ConsoleColor.YELLOW),(str(UserData["Port"]),ConsoleColor.PURPLE),(" is already 'pre' used by another session on the module",ConsoleColor.YELLOW))
+        else:
+            Comm("Add",("PreUsedPort",UserData["Port"]))
 
         LogModule.Say("--> ",(str(UserData["Port"]),ConsoleColor.PURPLE))
 

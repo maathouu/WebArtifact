@@ -23,7 +23,7 @@ import WebArtifact as wa
 <h3 style="font-size:1.5rem;">Layout</h3>
 
 
-<h2 style="font-size:1.5rem;">Summuary</h2>
+<h2 style="font-size:2rem;">Summuary</h2>
 
 
 
