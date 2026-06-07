@@ -1,6 +1,28 @@
 import time
 import os
 
+def SayDict(Var):
+    Result = []
+    Id = 1
+    MaxLent = 0
+
+    for item in Var:
+        if len(item) > MaxLent:MaxLent = len(item)
+
+    for item in Var:
+        Signe1 = "└" if len(Var) == Id else "├"
+        Signe2 = " " if len(Var) == Id else "│"
+
+        if type(Var[item]) == dict: 
+            Result.append(f"{Signe1}─ {item}\n")
+            Temp = SayDict(Var[item])
+            for SubItem in Temp:
+                Result.append(f"{Signe2}  {SubItem}")
+        else:
+            Result.append(f"{Signe1}─ {item:<{MaxLent}} : {Var[item]}\n")
+    return Result
+
+
 class ConsoleColor:
     HEADER = '\033[95m'
     
@@ -18,7 +40,7 @@ class ConsoleColor:
     UNDERLINE = '\033[4m'
 
 
-class LogManager:                                                                                                      
+class LogManager:
     def __init__(self,mode="normal",save="console"):
         
         self.Save = save
@@ -38,25 +60,26 @@ class LogManager:
     def Changecategory(self,Com):
         self.Category = Com
 
-    def Say(self,*Message,mode="Normal"):
-        if mode != "Blank":
-            Prefix = ("["+str(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))+"]",ConsoleColor.BOLD)
-            if mode == "Normal":
-                Prefix = (Prefix," | ",(self.Category,ConsoleColor.GREEN)," | : ")
-            elif mode == "Space":
-                Prefix = ("\n",Prefix," | ",(self.Category,ConsoleColor.GREEN)," | : ")
-        else:
-            Prefix = ()
-            
+    def Say(self,*Message,PrefixTime=True,PrefixCategory=True,StartSpace=0,Format=0):
+        
+        if PrefixTime:Prefix =  ((f"[{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())}]",ConsoleColor.BOLD),)
+        else:Prefix = ()
+
+        if PrefixCategory:Prefix += (" | ",(self.Category,ConsoleColor.GREEN)," | : ")
+
+        if StartSpace > 0 :Prefix = ("\n"*StartSpace,)+Prefix   
+
+        if Format == 1:
+            Message = tuple([Mess for List in Message for Mess in List])
+
         if self.Save in ("file","both"):
             RawMessage = ""
             for word in Prefix+Message:
-                if type(word) != str:
-                    RawMessage += word[0]
-                else:
-                    RawMessage += word
+                
+                if type(word) == str:RawMessage += word
+                else:RawMessage += word[0]
 
-            with open(self.File, "a") as File:
+            with open(self.File, "a",encoding="utf-8") as File:
                 File.write(RawMessage+"\n")    
 
         if self.Save in ("console","both"):
@@ -68,12 +91,16 @@ class LogManager:
             print()
 
     def SayError(self,Var):
-        ErrorData = {key:value for key,value in vars(Var).items()}
-        self.Say((">> ERROR",ConsoleColor.RED),mode="Blank")
-        self.Say(("==> Context :",ConsoleColor.RED),mode="Blank")
-        for DisplayElement in ("GlobalContext","Context","DetailedContext"):
-            self.Say(("--> "+DisplayElement+" : "+ErrorData[DisplayElement],ConsoleColor.RED),mode="Blank")
-            del ErrorData[DisplayElement]
-        self.Say(("==> Param :",ConsoleColor.RED),mode="Blank")
-        for DisplayElement in ErrorData:
-            self.Say(("--> "+DisplayElement+" : "+str(ErrorData[DisplayElement]),ConsoleColor.RED),mode="Blank")
+        RawData = {key:value for key,value in vars(Var).items()}
+        NewData = {"Context":{key:value for key,value in RawData.items() if key in ("GlobalContext","Context","DetailedContext")},
+                   "Parameters":{key:value for key,value in RawData.items() if key not in ("GlobalContext","Context","DetailedContext")}}
+        self.Say(("╔═══════════════════════════════════════════════════════════════╗\n║                             ERROR                             ║\n╚═══════════════════════════════════════════════════════════════╝",ConsoleColor.RED),PrefixTime=False,PrefixCategory=False)
+
+        Display = SayDict(NewData)
+        self.Say(Display,PrefixTime=False,PrefixCategory=False,Format=1)
+
+
+
+
+
+

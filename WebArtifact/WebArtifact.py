@@ -63,7 +63,7 @@ class S:
             
         self.CurrentWorkingSession = SessionName
 
-        self.GLog.Say("Creating a new Firefox session : ",(SessionName,ConsoleColor.PURPLE),mode="Space")
+        self.GLog.Say("Creating a new Firefox session : ",(SessionName,ConsoleColor.PURPLE),StartSpace=1)
         self.GLog.Changecategory("Firefox profil verif")
         self.Browsers[SessionName] = (
             FirefoxManager({

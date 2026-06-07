@@ -106,9 +106,8 @@ class Utility:
         
     def GetFreeRegistredPort(PortRange:tuple,PortForbidden:tuple,ModuleInfo:tuple) -> int:
         PortsCandidates = [Port for Start,End in PortRange for Port in range(Start,End)]
-        print(PortsCandidates,PortForbidden)
         PortsCandidates = [Port for Port in PortsCandidates if Port not in PortForbidden]
-        print(PortsCandidates)
+
         for Port in PortsCandidates:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 try:
@@ -129,7 +128,7 @@ class Utility:
 class GlobalFunction:
     def VerifySocket(LogModule,Port,ShutDownOtherSession,Driver,ParentModule):
         ModuleInfo = (GlobalE.InvalidSocket,LogModule,Driver,ParentModule)
-        LogModule.Say(("Verifying port ",ConsoleColor.BLUE),(str(Port),ConsoleColor.PURPLE),mode="Space")
+        LogModule.Say(("Verifying port ",ConsoleColor.BLUE),(str(Port),ConsoleColor.PURPLE),StartSpace=1)
 
         SubprocessResult = Utility.GetSocket(Port,ModuleInfo)
 
@@ -198,7 +197,7 @@ class GlobalFunction:
         UsedPort = Comm()["UsedPort"]
         PreUsedPort = Comm()["PreUsedPort"]
 
-        LogModule.Say(("Verifying Application Path",ConsoleColor.BLUE),mode="Space")
+        LogModule.Say(("Verifying Application Path",ConsoleColor.BLUE),StartSpace=1)
         for AppliPath,AppliName in ((UserData["DriverPath"],os.path.splitext(Driver)[0]),(UserData["BrowserPath"],ParentModule)):
             Result = Utility.IsValidApplication(AppliPath,AppliName,ModuleInfo)
             if Result[0]:
@@ -214,7 +213,7 @@ class GlobalFunction:
         elif ParentModule == "chrome":
             ... # ChromiumUpdate
         
-        LogModule.Say(("Verifying Port",ConsoleColor.BLUE),mode="Space") 
+        LogModule.Say(("Verifying Port",ConsoleColor.BLUE),StartSpace=1) 
         if UserData["Port"] != "auto":
             try:
                 UserData["Port"] = int(UserData["Port"])
@@ -252,7 +251,7 @@ class GlobalFunction:
 
         LogModule.Say("--> ",(str(UserData["Port"]),ConsoleColor.PURPLE))
 
-        LogModule.Say(("Verifying Firefox Profil Name",ConsoleColor.BLUE),mode="Space")
+        LogModule.Say(("Verifying Firefox Profil Name",ConsoleColor.BLUE),StartSpace=1)
         if UserData["ProfilName"] == "Temp" and UserData["ProfilPath"] == "":
             LogModule.Say("--> Firefox Profil Name: Temp")
             LogModule.Say("==> ",("A temporary file will be created and deleted automatically",ConsoleColor.YELLOW))
@@ -286,7 +285,7 @@ class GlobalFunction:
                     
         else:
             LogModule.Say("--> No profil name set")
-            LogModule.Say(("Verifying Firefox Profil Path",ConsoleColor.BLUE),mode="Space")
+            LogModule.Say(("Verifying Firefox Profil Path",ConsoleColor.BLUE),StartSpace=1)
             if os.path.isdir(UserData["ProfilPath"]):
                 if ParentModule == "firefox":
                     FirefoxOptionalFiles = {
@@ -319,5 +318,5 @@ class GlobalFunction:
                 raise NotADirectoryError("",f"'{UserData['ProfilPath']}' isn't a directory but a file")
             else:
                 raise FileNotFoundError("",f"'{UserData['ProfilPath']}' isn't a valid path")
-        LogModule.Say(("Finished verifying User settings",ConsoleColor.CYAN),mode="Space")
+        LogModule.Say(("Finished verifying User settings",ConsoleColor.CYAN),StartSpace=1)
         return UserData

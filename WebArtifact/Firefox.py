@@ -18,7 +18,7 @@ class FirefoxManager:
 
         GlobalFunction.VerifySocket(self.LogModule,self.UserData["Port"],self.Data["ShutDownOtherSession"],"geckodriver.exe","firefox")
         
-        self.LogModule.Say(("Launching Driver : ",ConsoleColor.BLUE),(self.UserData["DriverPath"],ConsoleColor.PURPLE),mode="Space")
+        self.LogModule.Say(("Launching Driver : ",ConsoleColor.BLUE),(self.UserData["DriverPath"],ConsoleColor.PURPLE),StartSpace=1)
         try:
             self.Driver = subprocess.Popen([self.UserData["DriverPath"],"--port",str(self.UserData["Port"])],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
         except Exception as E:
@@ -27,7 +27,7 @@ class FirefoxManager:
         TimeTook = Utility.WaitOpenDriver(self.LogModule,self.UserData["Port"],self.Data["OpenDriverTimeout"],"geckodriver")
         
         self.LogModule.Say("--> Geckdoriver took ",(TimeTook,ConsoleColor.ORANGE)," secondes to luanch")
-        self.LogModule.Say(("Finished Opening geckodriver",ConsoleColor.CYAN),mode="Space")
+        self.LogModule.Say(("Finished Opening geckodriver",ConsoleColor.CYAN),StartSpace=1)
 
     # def OpenDriver(self):
     #     self.VerifySocket()                                                                                                         # Verifie que le port demandé n'est pas occupé

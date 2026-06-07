@@ -2,5 +2,6 @@ l.py
 luancher.py
 
 __pycache__/
+Docs/Versions/
 
 *.log
