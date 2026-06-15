@@ -40,26 +40,23 @@ class Utility:
         else:
             return Text
         
-    def IsValidApplication(ApplicationPath:str,ApplicationName:str,ModuleInfo:tuple) -> bool:
+    def IsValidApplication(ApplicationPath:str,ApplicationName:str) -> tuple[bool,str]:
             if not os.path.isfile(ApplicationPath):
                 raise FileNotFoundError("",f"'{ApplicationPath}' isn't a valid path")
             try:
                 SubprocessResult = subprocess.run([ApplicationPath,"--version"],capture_output=True,text=True)
             except Exception as E:
-                raise ModuleInfo[0](ModuleInfo[1],"",
-                                    ModuleInfo[2],ModuleInfo[3],0,ErrorModule=E,Unexpected="Subprocess",
-                                    Command=f"{ApplicationPath} --version")
+                raise GlobalE.FlexError(Context="",Line=0,ErrorModule=E,Unexpected="Subprocess",Command=f"{ApplicationPath} --version")
             TempLine = SubprocessResult.stdout.splitlines()[0]
             return ApplicationName.lower() in TempLine.lower(),TempLine.lower()
     
-    def GetSocket(Port,ModuleInfo):
+    def GetSocket(Port:int):
         try:
-            SubprocessResult = subprocess.run("netstat -ano | findstr :"+str(Port),shell=True,capture_output=True,text=True,check=True)
-        except subprocess.CalledProcessError as E:
-            raise ModuleInfo[0](ModuleInfo[1],
-                                f"Analysing port {Port}",
-                                Port,ModuleInfo[2],ModuleInfo[3],0,ErrorModule=E,Unexpected="Subprocess",
-                                Command="netstat -ano | findstr :"+Port)
+            SubprocessResult = subprocess.run("netstat -ano | findstr "+str(Port),shell=True,capture_output=True,text=True,check=True)
+        except Exception as E:
+            if type(E) == subprocess.CalledProcessError and E.returncode == 1: # TR
+                return ""
+            raise GlobalE.FlexError(Context="",Line=0,ErrorModule=E,Unexpected="Subprocess",Command="netstat -ano | findstr "+str(Port))
         return SubprocessResult.stdout.split("\n")
 
     def ReadIniFile(FilePath:str) -> dict:
@@ -79,30 +76,25 @@ class Utility:
                     result[ActualSection][Line[0]] = Line[1]
         return result
 
-    def WaitOpenDriver(Port:str,TimeOut:int,ModuleInfo:tuple) -> int:
+    def WaitOpenDriver(Port:str,TimeOut:int) -> int:
         TimeStart = time.time()
         Finished = False
         while time.time() - TimeStart < TimeOut and  not Finished:
             try:
                 with socket.create_connection(("localhost", Port),timeout=0.1):
                     return str(time.time() - TimeStart)
-            except OSError:
+            except (ConnectionRefusedError,socket.timeout,OSError):
                 time.sleep(0.1)
-            except Exception as E:
-                raise ModuleInfo[0](ModuleInfo[1])
-        raise ModuleInfo[0](ModuleInfo[1],
-                            f"{ModuleInfo[2]} exceded the luanch timeout : {time.time()-TimeStart} > {TimeOut}",
-                            ModuleInfo[2],ModuleInfo[3],0,
-                            TimeTook=str(time.time()-TimeStart),TimeOut=TimeOut)
+        raise GlobalE.FlexError(Context=f"Port {Port} took too long time to luanch",DetailedContext=f"Driver at port {Port} exceded timeout : {time.time()-TimeStart} < {TimeOut}",
+                                Line=0,
+                                TimeTook=time.time()-TimeStart) # TT
 
-    def ReadJsonFile(FilePath:str,ModuleInfo:tuple) -> dict:
+    def ReadJsonFile(FilePath:str) -> dict:
         try:
             with open(FilePath, "r") as File:
                 return json.load(File)
         except Exception as E:
-            raise ModuleInfo[0](ModuleInfo[1],"",
-                                ModuleInfo[2],ModuleInfo[3],0,ErrorModule=E,Unexpected="File",
-                                File=FilePath)
+            raise GlobalE.FlexError(Context="",Line=0,ErrorModule=E,Unexpected="File",File=FilePath)
         
     def GetFreeRegistredPort(PortRange:tuple,PortForbidden:tuple,ModuleInfo:tuple) -> int:
         PortsCandidates = [Port for Start,End in PortRange for Port in range(Start,End)]
@@ -127,10 +119,12 @@ class Utility:
 
 class GlobalFunction:
     def VerifySocket(LogModule,Port,ShutDownOtherSession,Driver,ParentModule):
-        ModuleInfo = (GlobalE.InvalidSocket,LogModule,Driver,ParentModule)
+        
         LogModule.Say(("Verifying port ",ConsoleColor.BLUE),(str(Port),ConsoleColor.PURPLE),StartSpace=1)
 
-        SubprocessResult = Utility.GetSocket(Port,ModuleInfo)
+        try:SubprocessResult = Utility.GetSocket(Port)
+        except GlobalE.FlexError as E:raise GlobalE.InvalidSocket(LogModule,E.Context,Port,Driver,ParentModule,E.Line,
+                                                                  ErrorModule=E.ErrorModule,Unexpected=E.Unexpected,Command=E.Command)
 
         if SubprocessResult != ['']:
             ProcList = []
@@ -141,15 +135,12 @@ class GlobalFunction:
                     DecomposedLine[-1] = DecomposedLine[-1].replace("\r","").replace("\n","")
                     try:
                         SocketPID = subprocess.run("wmic process where processid="+DecomposedLine[-1]+" get ExecutablePath",capture_output=True,text=True,check=True)
-                    except subprocess.CalledProcessError as E:
+                    except Exception as E:
                         raise GlobalE.InvalidSocket(LogModule,
                                                     f"Getting executable path of PID {DecomposedLine[-1]}",
-                                                    Port,Driver,ParentModule,0,ErrorModule=E,
-                                                    Command=f"wmic process where processid={DecomposedLine[-1]} get ExecutablePath",ProcessID=DecomposedLine[-1]) # ToTest
-                    except Exception as E:
-                        raise GlobalE.InvalidSocket(LogModule,"",
-                                                    Port,Driver,ParentModule,0,ErrorModule=E,
-                                                    Command=f"wmic process where processid={DecomposedLine[-1]} get ExecutablePath",ProcessID=DecomposedLine[-1])
+                                                    Port,Driver,ParentModule,0,ErrorModule=E,Unexpected="Subprocess",
+                                                    Command=f"wmic process where processid={DecomposedLine[-1]} get ExecutablePath",ProcessID=DecomposedLine[-1]) # TT
+                    
                     SocketPID = SocketPID.stdout.replace("\r","").replace("\n","")
                     SocketPID = Utility.Decompose(SocketPID)
                     ProcList.append({"Type":DecomposedLine[0],"LocalAdress":DecomposedLine[1],"DistantAdress":DecomposedLine[2],"Statu":(DecomposedLine[3] if DecomposedLine[0] == "TCP" else ""),"PID":DecomposedLine[-1],"Path":(SocketPID[1] if len(SocketPID) > 1 else None)})
@@ -199,7 +190,11 @@ class GlobalFunction:
 
         LogModule.Say(("Verifying Application Path",ConsoleColor.BLUE),StartSpace=1)
         for AppliPath,AppliName in ((UserData["DriverPath"],os.path.splitext(Driver)[0]),(UserData["BrowserPath"],ParentModule)):
-            Result = Utility.IsValidApplication(AppliPath,AppliName,ModuleInfo)
+            
+            try:Result = Utility.IsValidApplication(AppliPath,AppliName)
+            except GlobalE.FlexError as E:raise GlobalE.InvalidUserSettings(LogModule,E.Context,Driver,ParentModule,E.Line,
+                                                                            ErrorModule=E.ErrorModule,Unexpected=E.Unexpected,Command=E.Command)
+
             if Result[0]:
                 LogModule.Say("--> ",(Result[1],ConsoleColor.PURPLE))
             else:
@@ -296,8 +291,13 @@ class GlobalFunction:
                         "key4.db"           # Mots de passe 
                     }
                     TimesFilePath = os.path.join(UserData["ProfilPath"],"times.json")
-                    TimesFile = Utility.ReadJsonFile(TimesFilePath,ModuleInfo)
- 
+                    
+                    try:TimesFile = Utility.ReadJsonFile(TimesFilePath)
+                    except Exception as E:raise GlobalE.InvalidUserSettings(LogModule,E.Context,
+                                                                            Driver,ParentModule,E.Line,
+                                                                            ErrorModule=E.ErrorModule,Unexpected=E.Unexpected,
+                                                                            File=E.File)
+                    
                     LogModule.Say("--> ",(f"{'times.json':<20}",ConsoleColor.PURPLE),": ",("present",ConsoleColor.BOLD))
                     if ("created","firstUse") != tuple(TimesFile.keys()):
                         raise GlobalE.InvalidUserSettings(LogModule,

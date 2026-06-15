@@ -38,7 +38,7 @@ For more information about the structure/function you can check the HardDocument
 
 ## MAJ
 
-### News
+### News (0.1)
 
 - Totally reworked the error handling
 - Reworked code structure
