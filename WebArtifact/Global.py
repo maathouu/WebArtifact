@@ -96,7 +96,7 @@ class Utility:
         except Exception as E:
             raise GlobalE.FlexError(Context="",Line=0,ErrorModule=E,Unexpected="File",File=FilePath)
         
-    def GetFreeRegistredPort(PortRange:tuple,PortForbidden:tuple,ModuleInfo:tuple) -> int:
+    def GetFreeRegistredPort(PortRange:tuple,PortForbidden:tuple) -> int:
         PortsCandidates = [Port for Start,End in PortRange for Port in range(Start,End)]
         PortsCandidates = [Port for Port in PortsCandidates if Port not in PortForbidden]
 
@@ -110,10 +110,8 @@ class Utility:
         try:
             SubprocessResult = subprocess.run("netstat -n",capture_output=True)
         except Exception as E:
-            raise ModuleInfo[0](ModuleInfo[1],
-                                f"Analysing all sockets",
-                                Port,ModuleInfo[2],ModuleInfo[3],0,ErrorModule=E,Unexpected="Subprocess",
-                                Command="netstat -n")
+            raise GlobalE.FlexError(Content="",Line=0,Port=Port,ErrorModule=E,Unexpected="Subprocess",Command="netstat -n") # TT
+        
         return list(set(range(49152, 65535)) - set([int(x) for x in list(set(re.findall(rb"\b\d+\.\d+.\d+.\d+:(\d+)\b", SubprocessResult.stdout)))]))[0] # TM
         
 
@@ -179,7 +177,6 @@ class GlobalFunction:
                 LogModule.Say("==> ",("This socket has no application associated with",ConsoleColor.YELLOW))
 
     def VerifyUserSettings(LogModule,UserData,Comm,Driver,ParentModule):
-        ModuleInfo = (GlobalE.InvalidUserSettings,LogModule,Driver,ParentModule)
         if ParentModule == "firefox":
             UserData["FirefoxOptions"] = {"args": []}
         elif ParentModule == "chrome":
@@ -237,7 +234,11 @@ class GlobalFunction:
                                                 DetailedContext=f"'{UserData['Port']}' is present in {str(UsedPort)}",
                                                 UsedPort=UsedPort,Port=UserData["Port"])
         else:
-            UserData["Port"] = Utility.GetFreeRegistredPort(((4434, 4440), (4461, 4479), (4489, 4499), (4504, 4533)),PreUsedPort,ModuleInfo)
+            
+            try:UserData["Port"] = Utility.GetFreeRegistredPort(((4434, 4440), (4461, 4479), (4489, 4499), (4504, 4533)),PreUsedPort)
+            except GlobalE.FlexError as E:raise GlobalE.InvalidUserSettings(LogModule,E.Content,
+                                                                            Driver,ParentModule,E.Line,ErrorModule=E.ErrorModule,Unexpected=E.Unexpected,
+                                                                            Port=E.Port,Command=E.Command)
 
         if UserData["Port"] in PreUsedPort:
             LogModule.Say("==> ",("Port ",ConsoleColor.YELLOW),(str(UserData["Port"]),ConsoleColor.PURPLE),(" is already 'pre' used by another session on the module",ConsoleColor.YELLOW))
