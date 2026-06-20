@@ -132,12 +132,12 @@ class GlobalFunction:
                 if len(DecomposedLine) > 1:
                     DecomposedLine[-1] = DecomposedLine[-1].replace("\r","").replace("\n","")
                     try:
-                        SocketPID = subprocess.run("wmic process where processid="+DecomposedLine[-1]+" get ExecutablePath",capture_output=True,text=True,check=True)
+                        SocketPID = subprocess.run("wmic process where processid="+DecomposedLine[-1]+" get ExecutablePath",capture_output=True,text=True,check=True) # TT
                     except Exception as E:
                         raise GlobalE.InvalidSocket(LogModule,
                                                     f"Getting executable path of PID {DecomposedLine[-1]}",
                                                     Port,Driver,ParentModule,0,ErrorModule=E,Unexpected="Subprocess",
-                                                    Command=f"wmic process where processid={DecomposedLine[-1]} get ExecutablePath",ProcessID=DecomposedLine[-1]) # TT
+                                                    Command=f"wmic process where processid={DecomposedLine[-1]} get ExecutablePath",ProcessID=DecomposedLine[-1])
                     
                     SocketPID = SocketPID.stdout.replace("\r","").replace("\n","")
                     SocketPID = Utility.Decompose(SocketPID)

@@ -12,9 +12,15 @@ class S:
     def __init__(self) -> None:
         
         self.Data = {
-            "OpenDriverTimeout":5,
-            "BrowserOpen":False,
-            "ShutDownOtherSession":True,
+            "Session":{
+                "OpenDriverTimeout":5,
+                "BrowserOpen":False,
+                "ShutDownOtherSession":True,
+            },
+            "Log":{
+                "Save":"both",
+                "Mode":"test"
+            }
         }
         self.InternalData = {
             "UsedPort":[],
@@ -24,7 +30,7 @@ class S:
         self.Browsers = {
 
         }
-        self.GLog = LogManager(mode="test",save="both") 
+        self.GLog = LogManager(mode=self.Data["Log"]["Mode"],save=self.Data["Log"]["Save"]) 
         self.GLog.Say("Log module loaded")
 
 
@@ -35,7 +41,7 @@ class S:
         :param GeckodriverPath: path to geckodriver.exe
         :param FirefoxPath: binary of firefox.exe
         :param ProfilPath: path to any firefox profil
-        :param ProfilName: name of a profil in profiles.init
+        :param ProfilName: name of a profil in profiles.ini
         :param Port: port to open geckodriver
         :param SessionName: session name
         
@@ -65,18 +71,21 @@ class S:
 
         self.GLog.Say("Creating a new Firefox session : ",(SessionName,ConsoleColor.PURPLE),StartSpace=1)
         self.GLog.Changecategory("Firefox profil verif")
-        self.Browsers[SessionName] = (
-            FirefoxManager({
-                "DriverPath":GeckodriverPath,
-                "BrowserPath":FirefoxPath,
-                "ProfilPath":ProfilPath,
-                "ProfilName":ProfilName,
-                "Port":Port
-            },
-            self.GLog,
-            self.Data,
-            self.Comm)
-        ,"Firefox")
+        self.Browsers[SessionName] = {
+            "Module":FirefoxManager({
+                            "DriverPath":GeckodriverPath,
+                            "BrowserPath":FirefoxPath,
+                            "ProfilPath":ProfilPath,
+                            "ProfilName":ProfilName,
+                            "Port":Port
+                           },
+                           self.GLog,
+                           self.Data["Session"],
+                           self.Comm),
+            "Browser":"Firefox",
+            "Statu":0}
+        
+        self.Browsers[SessionName]["Statu"] = 1
 
 
     def Comm(self,mode="Get",data=None):
@@ -90,21 +99,38 @@ class S:
 
     def OpenDriver(self,SessionName="$") -> None:
         
-        if len(self.Browsers) > 0:
-            if SessionName == "$":
-                SessionName = self.CurrentWorkingSession
-            elif SessionName not in self.Browsers:
-                self.GLog.SayError("IncorrectName",("Global","OpenDriver","IncorrectSession"),name=SessionName)             #
-
-            if self.Browsers[SessionName][1] == "Firefox":
-                self.GLog.Changecategory("Geckodriver luanch")
-                self.Browsers[SessionName][0].OpenGeckodriver()
-
-            elif self.Browsers[SessionName][1] == "Chrome":
-                None
+        if not len(self.Browsers) > 0:
+            raise GlobalE.BadUtilisation(self.GLog,
+                                         "No Session created",0,
+                                         DetailedContext=f"You need to create a session before opening it's driver")
         
-        else:
-            self.GLog.SayError("NoSession",("Firefox","OpenDriver","IncorrectSession"))
+        if SessionName == "$":
+            SessionName = self.CurrentWorkingSession
+        elif SessionName not in self.Browsers:
+            raise GlobalE.BadUtilisation(self.GLog,
+                                         f"No sessionname named '{SessionName}'",0,
+                                         DetailedContext=f"SessionName '{SessionName}' haven't been created : '{[x for x in self.Browsers]}'",
+                                         SessionNameGot=SessionName,SessionNameUsed=[x for x in self.Browsers])
+        
+        if self.Browsers[SessionName]["Statu"] != 1:
+            raise GlobalE.BadUtilisation(self.GLog,
+                                         f"Session {SessionName} hasn't a valid statu code",0,
+                                         DetailedContext=f"Session {SessionName} statu isn't equal to 1 : {self.Browsers[SessionName]["Statu"]}",
+                                         SessionName=SessionName,SessionStatu=self.Browsers[SessionName]["Statu"])
+        
+        self.Browsers[SessionName]["Statu"] = 2
+
+        match self.Browsers[SessionName]["Browser"]:
+            case "Firefox":
+                self.GLog.Changecategory("Geckodriver luanch")
+                self.Browsers[SessionName]["Module"].OpenGeckodriver()
+
+            case "Chrome":
+                None
+
+        self.Browsers[SessionName]["Statu"] = 3
+            
+        
 
     def OpenBrowser(self,SessionName="$"):
         None

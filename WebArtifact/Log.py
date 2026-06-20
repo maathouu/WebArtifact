@@ -20,6 +20,7 @@ def SayDict(Var):
                 Result.append(f"{Signe2}  {SubItem}")
         else:
             Result.append(f"{Signe1}─ {item:<{MaxLent}} : {Var[item]}\n")
+        Id += 1
     return Result
 
 
