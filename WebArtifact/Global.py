@@ -50,7 +50,7 @@ class Utility:
             TempLine = SubprocessResult.stdout.splitlines()[0]
             return ApplicationName.lower() in TempLine.lower(),TempLine.lower()
     
-    def GetSocket(Port:int):
+    def GetSocket(Port:int) -> str:
         try:
             SubprocessResult = subprocess.run("netstat -ano | findstr "+str(Port),shell=True,capture_output=True,text=True,check=True)
         except Exception as E:
@@ -126,11 +126,13 @@ class GlobalFunction:
 
         if SubprocessResult != ['']:
             ProcList = []
+            
             for Line in SubprocessResult:
                 DecomposedLine = Utility.Decompose(Line)
                 
                 if len(DecomposedLine) > 1:
                     DecomposedLine[-1] = DecomposedLine[-1].replace("\r","").replace("\n","")
+                    
                     try:
                         SocketPID = subprocess.run("wmic process where processid="+DecomposedLine[-1]+" get ExecutablePath",capture_output=True,text=True,check=True) # TT
                     except Exception as E:
@@ -145,34 +147,36 @@ class GlobalFunction:
                     LogModule.Say("--> ",(str(ProcList[-1]),ConsoleColor.PURPLE))
 
                 for Line in ProcList:
+                    
                     if Line["Type"] == "UDP":
                         raise GlobalE.InvalidSocket(LogModule,
                                                     f"Verifying processus informations on port {Port}",
                                                     Port,Driver,ParentModule,0,
                                                     DetailedContext=f"Port {Port} have already an UDP connection",
                                                     ProcInfo=Line)
-                    else:
-                        if Line["Statu"] in ("LISTENING","ESTABLISHED","CLOSE_WAIT","SYN_SENT","SYN_RECEIVED"):
-                            if os.path.basename(Line["Path"]).lower() in (Driver,os.path.splitext(Driver)[0]):
-                                None # ToDo
-                                # try:
-                                #     response = requests.post(f"http://localhost:{Port}/session", json={
-                                #         "capabilities": {
-                                #             "alwaysMatch": {
-                                #                 "browserName": "firefox"
-                                #             }}})
-                                # except Exception as E:
-                                #     raise # Special error for request ConnectionError / Timeout / RequestException as E | unexpected error
-                                # if response.status_code != 200:
-                                #     raise GlobalE.InvalidSocket()
-                            else:
-                                raise GlobalE.InvalidSocket(LogModule,
-                                                            f"'{os.path.basename(Line['Path']).lower()}' isn't '{Driver}'",
-                                                            Port,Driver,ParentModule,0,
-                                                            DetailedContext=f"'{os.path.basename(Line['Path']).lower()}' isn't equal to '{Driver}' or '{os.path.splitext(Driver)[0]}'",
-                                                            ApplicationName=os.path.basename(Line["Path"]).lower(),ProcInfo=Line)
-                        elif Line["Statu"] == "TIME_WAIT":
-                            None # ToDo
+                    
+                    if Line ["Statu"] == "LISTENING":
+                    
+                        if not os.path.basename(Line["Path"]).lower() in (Driver,os.path.splitext(Driver)[0]):
+                            raise GlobalE.InvalidSocket(LogModule,
+                                                        f"'{os.path.basename(Line['Path']).lower()}' isn't '{Driver}'",
+                                                        Port,Driver,ParentModule,0,
+                                                        DetailedContext=f"'{os.path.basename(Line['Path']).lower()}' isn't equal to '{Driver}' or '{os.path.splitext(Driver)[0]}'",
+                                                        ApplicationName=os.path.basename(Line["Path"]).lower(),ProcInfo=Line)
+                        try:
+                            response = requests.get(f"http://localhost:{Port}/status")
+                            print(response)
+                        except Exception as E:
+                            print("jpp wola")
+                        
+                        # if response.status_code != 200:
+                        #     raise GlobalE.InvalidSocket()
+                        
+                        
+                    elif Line["Statu"] in ("ESTABLISHED","CLOSE_WAIT","SYN_SENT","SYN_RECEIVED"):
+                        None # ToDO
+                    elif Line["Statu"] == "TIME_WAIT":
+                        None # ToDo
             else:
                 LogModule.Say("==> ",("This socket has no application associated with",ConsoleColor.YELLOW))
 
@@ -185,7 +189,7 @@ class GlobalFunction:
         UsedPort = Comm()["UsedPort"]
         PreUsedPort = Comm()["PreUsedPort"]
 
-        LogModule.Say(("Verifying Application Path",ConsoleColor.BLUE),StartSpace=1)
+        LogModule.Say(("Verifying Applications Path",ConsoleColor.BLUE),StartSpace=1)
         for AppliPath,AppliName in ((UserData["DriverPath"],os.path.splitext(Driver)[0]),(UserData["BrowserPath"],ParentModule)):
             
             try:Result = Utility.IsValidApplication(AppliPath,AppliName)
@@ -205,7 +209,7 @@ class GlobalFunction:
         elif ParentModule == "chrome":
             ... # ChromiumUpdate
         
-        LogModule.Say(("Verifying Port",ConsoleColor.BLUE),StartSpace=1) 
+        LogModule.Say(("Verifying Port Value",ConsoleColor.BLUE),StartSpace=1) 
         if UserData["Port"] != "auto":
             try:
                 UserData["Port"] = int(UserData["Port"])
