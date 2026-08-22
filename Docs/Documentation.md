@@ -24,6 +24,7 @@ import WebArtifact as wa
 
 <h3 style="font-size:2rem;">Layout</h3>
 
+---
 
 <h2 style="font-size:2.5rem;">Summuary</h2>
 
@@ -136,24 +137,48 @@ These functions are pure utilities and **do not directly executes actions on web
 
 
 <details>
-<summary>Decompose</summary>
-
-```python
-Text = "   A text  with  a lot of             space at the    start and    the end      "
-
-NewText = Utility.Decompose(Text)
-print(NewText)
-# >> ["A","text","with","a","lot","of","space","at","the","start","the","and","end"]
-```
-
-</details>
+<summary>GetFreeRegistredPort</summary>
 
 ---
 
-<details>
-<summary>GetFreeRegistredPort</summary>
+### Description
 
-Section 2
+This function **search and valid** an available network port in a defined range *(by avoiding forbidden port)*\
+If no port is available in the specified range, the function will scan every availible port directly with the systeme
+
+---
+
+### Parametres & return
+
+| Parametre | Type | Exemple | Description |
+| :--- | :--- | :--- | :--- |
+| **`PortRange`** | `tuple[tuple[int, int], ...]` | `((4434, 4440), (4461, 4479))` | Port range list to test. Each sub-tuple contains `(StartPort, EndPort)` |
+| **`PortForbidden`** | `tuple[int, ...]` | `(4444, 4445)` | List of port already used by the module |
+| **`return`** | `int` | `4434` | Available port found |
+
+---
+
+### Functioning & Usage
+
+The function generate a list of candidate ports by combining all `PortRange` range and by excluding port in `PortForbidden`
+
+1. **Active Strategie :** Function try linking sequentially (*bind*) to each candidates ports by using `socket.socket(socket.AF_INET, socket.SOCK_STREAM)`
+2. **BackUp Strategie :** If no port is available, function will extract the result of `netstat -n` to identify and return the first free port
+
+---
+
+### Error manager
+
+| Type | FlexError | Unexpected | Description |
+| :--- | :--- | :--- | :--- |
+| **`InvalidUserSetting`** | **Yes** | `Subprocess` | Handle subprocess for `netstat -n` |
+
+
+---
+
+> [!NOTE]\
+> Created: 0.1.1  
+> Last Updated: 0.1.1
 
 </details>
 
@@ -162,7 +187,39 @@ Section 2
 <details>
 <summary>GetSocket</summary>
 
-Section 3
+---
+
+### Description
+
+---
+
+### Parametres & return
+
+| Parametre | Type | Exemple | Description |
+| :--- | :--- | :--- | :--- |
+| **`Port`** | `int` | `4444` | Port to verify |
+| **`return`** | `str` | #TD | Result of the port analyse |
+
+---
+
+### Functioning & Usage
+
+
+
+---
+
+### Error manager
+
+| Type | FlexError | Unexpected | Description |
+| :--- | :--- | :--- | :--- |
+
+
+
+---
+
+> [!NOTE]\
+> Created: 0.-.-
+> Last Updated: 0.-.-
 
 </details>
 
@@ -171,7 +228,38 @@ Section 3
 <details>
 <summary>IsValidApplication</summary>
 
-Section 4
+---
+
+### Description
+
+---
+
+### Parametres & return
+
+| Parametre | Type | Exemple | Description |
+| :--- | :--- | :--- | :--- |
+| **`return`** |  |  |  |
+
+---
+
+### Functioning & Usage
+
+
+
+---
+
+### Error manager
+
+| Type | FlexError | Unexpected | Description |
+| :--- | :--- | :--- | :--- |
+
+
+
+---
+
+> [!NOTE]\
+> Created: 0.-.-
+> Last Updated: 0.-.-
 
 </details>
 
@@ -180,7 +268,38 @@ Section 4
 <details>
 <summary>ReadIniFile</summary>
 
-Section 5
+---
+
+### Description
+
+---
+
+### Parametres & return
+
+| Parametre | Type | Exemple | Description |
+| :--- | :--- | :--- | :--- |
+| **`return`** |  |  |  |
+
+---
+
+### Functioning & Usage
+
+
+
+---
+
+### Error manager
+
+| Type | FlexError | Unexpected | Description |
+| :--- | :--- | :--- | :--- |
+
+
+
+---
+
+> [!NOTE]\
+> Created: 0.-.-
+> Last Updated: 0.-.-
 
 </details>
 
@@ -189,7 +308,38 @@ Section 5
 <details>
 <summary>ReadJsonFile</summary>
 
-Section 6
+---
+
+### Description
+
+---
+
+### Parametres & return
+
+| Parametre | Type | Exemple | Description |
+| :--- | :--- | :--- | :--- |
+| **`return`** |  |  |  |
+
+---
+
+### Functioning & Usage
+
+
+
+---
+
+### Error manager
+
+| Type | FlexError | Unexpected | Description |
+| :--- | :--- | :--- | :--- |
+
+
+
+---
+
+> [!NOTE]\
+> Created: 0.-.-
+> Last Updated: 0.-.-v
 
 </details>
 
@@ -198,7 +348,38 @@ Section 6
 <details>
 <summary>SupFLSpace</summary>
 
-Section 7
+---
+
+### Description
+
+---
+
+### Parametres & return
+
+| Parametre | Type | Exemple | Description |
+| :--- | :--- | :--- | :--- |
+| **`return`** |  |  |  |
+
+---
+
+### Functioning & Usage
+
+
+
+---
+
+### Error manager
+
+| Type | FlexError | Unexpected | Description |
+| :--- | :--- | :--- | :--- |
+
+
+
+---
+
+> [!NOTE]\
+> Created: 0.-.-
+> Last Updated: 0.-.-
 
 </details>
 
@@ -207,7 +388,38 @@ Section 7
 <details>
 <summary>WaitOpenDriver</summary>
 
-Section 8
+---
+
+### Description
+
+---
+
+### Parametres & return
+
+| Parametre | Type | Exemple | Description |
+| :--- | :--- | :--- | :--- |
+| **`return`** |  |  |  |
+
+---
+
+### Functioning & Usage
+
+
+
+---
+
+### Error manager
+
+| Type | FlexError | Unexpected | Description |
+| :--- | :--- | :--- | :--- |
+
+
+
+---
+
+> [!NOTE]\
+> Created: 0.-.-
+> Last Updated: 0.-.-
 
 </details>
 

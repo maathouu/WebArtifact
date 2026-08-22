@@ -44,6 +44,7 @@ class ConsoleColor:
 class LogManager:
     def __init__(self,mode="normal",save="console"):
         
+        self.Version = "16-07-2026.0"
         self.Save = save
         self.Category = "None"
         self.ErrorCategory = "None"
@@ -57,6 +58,8 @@ class LogManager:
                 self.File = "Log/Test.log"
             with open(self.File,"w") as TempFile:
                 TempFile.write("")
+
+        self.Say(f"Log module loaded with version : {self.Version}")
 
     def Changecategory(self,Com):
         self.Category = Com
@@ -99,9 +102,3 @@ class LogManager:
 
         Display = SayDict(NewData)
         self.Say(Display,PrefixTime=False,PrefixCategory=False,Format=1)
-
-
-
-
-
-

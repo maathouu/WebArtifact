@@ -11,8 +11,8 @@ This project is currently in very early development.
 
 Core architecture is not finalized
 Many features are incomplete or unstable
-Breaking changes are very soon expected
-For more information about the structure/function you can check the HardDocumentation or SimpleDocumentation in /Docs
+<!-- Breaking changes are very soon expected -->
+For more information about the structure/function you can check the Documentation in /Docs
 
 ## Installation
 
@@ -41,7 +41,9 @@ For more information about the structure/function you can check the HardDocument
 
 ### Versions
 
-WebArtifact uses a **3 digit versioning system** following the format **`Major.Minor.Patch`**.
+WebArtifact use a common managing system used on all my project.
+
+It's a**3 digit versioning system** following the format **`Major.Minor.Patch`**.
 
 The **first digit** (`Major`) represents the **Global Category** of the project. It defines the project's main guidelines and architecture. Changes to this number are **extremely rare**.
 
@@ -50,6 +52,8 @@ The **second digit** (`Minor`) represents the **Global Subcategory**. It is incr
 The **third digit** (`Patch`) represents a **Micro Version**. It is used for all minor changes such as new small features, function improvements, bug fixes, or documentation updates.
 
 Patch versions do **not** have a dedicated roadmap. Every Patch change is documented in the **Versions** folder.
+
+*For more informations about this system, you can check :*
 
 ---
 

@@ -5,7 +5,7 @@
 import sys
 
 from .Log import LogManager,ConsoleColor
-from .Error import GlobalE
+from .Error import BadUtilisation
 
 
 class S:
@@ -30,8 +30,7 @@ class S:
         self.Browsers = {
 
         }
-        self.GLog = LogManager(mode=self.Data["Log"]["Mode"],save=self.Data["Log"]["Save"]) 
-        self.GLog.Say("Log module loaded")
+        self.GLog = LogManager(mode=self.Data["Log"]["Mode"],save=self.Data["Log"]["Save"])
 
 
     def Firefox(self,GeckodriverPath:str="geckodriver.exe",FirefoxPath:str=r"C:\Program Files\Mozilla Firefox\firefox.exe",ProfilPath:str="",ProfilName:str="Temp",Port="auto",SessionName:str="$") -> None:
@@ -49,7 +48,7 @@ class S:
                        
         self.GLog.Changecategory("None")
         if "WebArtifact.Firefox" not in sys.modules:
-            from .Firefox import FirefoxManager
+            from .WebBrowser import FirefoxManager
         else:
             FirefoxManager = sys.modules["WebArtifact.Firefox"].FirefoxManager
 
@@ -57,12 +56,12 @@ class S:
             SessionName = str(self.InternalData["SessionName"])
             self.InternalData["SessionName"] += 1
         elif type(SessionName) != str:
-            raise GlobalE.BadUtilisation(self.GLog,
+            raise BadUtilisation(self.GLog,
                                          "Custom Session name need to be str value",0,
                                          DetailedContext=f"'{SessionName}' is an {type(SessionName)} value and not str",
                                          SessionNameGot=SessionName,SessionNameType=type(SessionName))
         if SessionName in self.Browsers:
-            raise GlobalE.BadUtilisation(self.GLog,
+            raise BadUtilisation(self.GLog,
                                          "Session name specified is already used",0,
                                          DetailedContext=f"SessionName '{SessionName}' have already been created : '{[x for x in self.Browsers]}'",
                                          SessionNameGot=SessionName,SessionNameUsed=[x for x in self.Browsers])
@@ -100,20 +99,20 @@ class S:
     def OpenDriver(self,SessionName="$") -> None:
         
         if not len(self.Browsers) > 0:
-            raise GlobalE.BadUtilisation(self.GLog,
+            raise BadUtilisation(self.GLog,
                                          "No Session created",0,
                                          DetailedContext=f"You need to create a session before opening it's driver")
         
         if SessionName == "$":
             SessionName = self.CurrentWorkingSession
         elif SessionName not in self.Browsers:
-            raise GlobalE.BadUtilisation(self.GLog,
+            raise BadUtilisation(self.GLog,
                                          f"No sessionname named '{SessionName}'",0,
                                          DetailedContext=f"SessionName '{SessionName}' haven't been created : '{[x for x in self.Browsers]}'",
                                          SessionNameGot=SessionName,SessionNameUsed=[x for x in self.Browsers])
         
         if self.Browsers[SessionName]["Statu"] != 1:
-            raise GlobalE.BadUtilisation(self.GLog,
+            raise BadUtilisation(self.GLog,
                                          f"Session {SessionName} hasn't a valid statu code",0,
                                          DetailedContext=f"Session {SessionName} statu isn't equal to 1 : {self.Browsers[SessionName]["Statu"]}",
                                          SessionName=SessionName,SessionStatu=self.Browsers[SessionName]["Statu"])
