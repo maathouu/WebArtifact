@@ -53,7 +53,7 @@ The **third digit** (`Patch`) represents a **Micro Version**. It is used for all
 
 Patch versions do **not** have a dedicated roadmap. Every Patch change is documented in the **Versions** folder.
 
-*For more informations about this system, you can check :*
+*For more informations about this system, you can check : /Docs/Documentation.md*
 
 ---
 

@@ -23,18 +23,42 @@ class FirefoxManager:
             self.Driver = subprocess.Popen([self.UserData["DriverPath"],"--port",str(self.UserData["Port"])],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
         except Exception as E:
             raise CantOpenDriver(self.LogModule,"",
-                                         "geckodriver","Firefox",0,self.UserData["Port"],
-                                         ErrorModule=E,Unexpected="Subprocess",
-                                         Command=f"{self.UserData["DriverPath"]} --port {self.UserData["Port"]}")  # TT
+                                 "geckodriver","Firefox",0,self.UserData["Port"],
+                                 ErrorModule=E,Unexpected="Subprocess",
+                                 Command=f"{self.UserData["DriverPath"]} --port {self.UserData["Port"]}")  # TT
         
         try:TimeTook = Utility.WaitOpenDriver(self.UserData["Port"],self.Data["OpenDriverTimeout"])
         except FlexError as E:raise CantOpenDriver(self.LogModule,E.Context,
-                                                                   "geckodriver","Firefox",E.Line,self.UserData["Port"],
-                                                                   DetailedContext=E.DetailedContext,
-                                                                   TimeTook=E.TimeTook,Timeout=self.Data["OpenDriverTimeout"])  # TT
+                                                   "geckodriver","Firefox",E.Line,self.UserData["Port"],
+                                                   DetailedContext=E.DetailedContext,
+                                                   TimeTook=E.TimeTook,Timeout=self.Data["OpenDriverTimeout"])  # TT
 
         self.LogModule.Say("--> Geckdoriver took ",(TimeTook,ConsoleColor.ORANGE)," secondes to luanch")
         self.LogModule.Say(("Finished Opening geckodriver",ConsoleColor.CYAN),StartSpace=1)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     # def OpenDriver(self):
     #     self.VerifySocket()                                                                                                         # Verifie que le port demandé n'est pas occupé

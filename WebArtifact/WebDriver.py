@@ -1,2 +1,27 @@
+import requests
+
+
+
 class WebDriver:
-    None
+
+    def NewSession(Port,Browser):
+        Resp = requests.post(f"http://127.0.0.1:{Port}/session", json={
+            "capabilities": {
+                "alwaysMatch": {
+                    "browserName": Browser
+                }
+            }
+        })
+        Data = Resp.json()
+        print(Data)
+
+
+    def GetStatus(Port):
+        Resp = requests.get(f"http://127.0.0.1:{Port}/status")
+        Data = Resp.json()
+        print(Data)
+
+
+
+# WebDriver.NewSession(4444,"firefox")
+# WebDriver.GetStatus(4444)

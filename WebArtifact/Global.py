@@ -7,6 +7,7 @@ import re
 
 from .Log import ConsoleColor
 from .Error import FlexError,InvalidSocket,InvalidUserSettings
+from .WebDriver import WebDriver
 
 class Utility:
     # def Decompose(Text:str) -> list:
@@ -117,31 +118,30 @@ class GlobalFunction:
     def VerifySocket(LogModule,Port,ShutDownOtherSession,Driver,ParentModule):
         
         LogModule.Say(("Verifying port ",ConsoleColor.BLUE),(str(Port),ConsoleColor.PURPLE),StartSpace=1)
-
+        # Get Active(s) Process on Port -
         try:SubprocessResult = Utility.GetSocket(Port)
         except FlexError as E:raise InvalidSocket(LogModule,E.Context,Port,Driver,ParentModule,E.Line,
-                                                                  ErrorModule=E.ErrorModule,Unexpected=E.Unexpected,Command=E.Command)
+                                                  ErrorModule=E.ErrorModule,Unexpected=E.Unexpected,Command=E.Command)
 
         if SubprocessResult != ['']:
             ProcList = []
             
             for Line in SubprocessResult:
                 DecomposedLine = Line.split()
-                
+                # DecomposedLine arch : [Protocol , LocalIP , RemoteIP , Status , PID]
                 if len(DecomposedLine) > 1:
                     DecomposedLine[-1] = DecomposedLine[-1].replace("\r","").replace("\n","")
                     
                     try:
-                        SocketPID = subprocess.run("wmic process where processid="+DecomposedLine[-1]+" get ExecutablePath",capture_output=True,text=True,check=True) # TT
+                        # Get Executable Path with the PID in Powershell
+                        ExecutablePath = subprocess.run(["powershell","-NoProfile","-Command",f"(Get-Process -Id {DecomposedLine[-1]}).Path"],capture_output=True,text=True,check=True).stdout.strip()
                     except Exception as E:
                         raise InvalidSocket(LogModule,
-                                                    f"Getting executable path of PID {DecomposedLine[-1]}",
-                                                    Port,Driver,ParentModule,0,ErrorModule=E,Unexpected="Subprocess",
-                                                    Command=f"wmic process where processid={DecomposedLine[-1]} get ExecutablePath",ProcessID=DecomposedLine[-1])
+                                            f"Getting executable path of PID {DecomposedLine[-1]}",
+                                            Port,Driver,ParentModule,0,ErrorModule=E,Unexpected="Subprocess",
+                                            Command=f"wmic process where processid={DecomposedLine[-1]} get ExecutablePath",ProcessID=DecomposedLine[-1])
                     
-                    SocketPID = SocketPID.stdout.replace("\r","").replace("\n","")
-                    SocketPID = SocketPID.split()
-                    ProcList.append({"Type":DecomposedLine[0],"LocalAdress":DecomposedLine[1],"DistantAdress":DecomposedLine[2],"Statu":(DecomposedLine[3] if DecomposedLine[0] == "TCP" else ""),"PID":DecomposedLine[-1],"Path":(SocketPID[1] if len(SocketPID) > 1 else None)})
+                    ProcList.append({"Type":DecomposedLine[0],"LocalAdress":DecomposedLine[1],"DistantAdress":DecomposedLine[2],"Statu":(DecomposedLine[3] if DecomposedLine[0] == "TCP" else ""),"PID":DecomposedLine[-1],"Path":ExecutablePath})
                     LogModule.Say("--> ",(str(ProcList[-1]),ConsoleColor.PURPLE))
 
                 for Line in ProcList:

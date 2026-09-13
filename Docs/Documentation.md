@@ -1,5 +1,8 @@
 <h1 style="font-size:3.5rem;">Web Artifact - lightweight multi browser automation</h1> 
 
+
+
+
 <h2 style="font-size:2.5rem;">Basic Infos</h2>
 
 Web Artifact is an open source project which aims to be a Python librairy in the future\
@@ -26,11 +29,78 @@ import WebArtifact as wa
 
 ---
 
+
+<h3 style="font-size:2rem;">Version System</h3>
+
+<h4 style="font-size:1.5rem;">Working</h4>
+
+WebArtifact use a common managing system used on all my project\
+It's a **3 digit versioning system** following the format **`Major.Minor.Patch`** : 
+
+- The **first digit** (`Major`) represents the **Global Category** of the project. It defines the project's main guidelines and architecture. Changes to this number are **extremely rare**
+- The **second digit** (`Minor`) represents the **Global Subcategory**. It is incremented when a **major feature or update** has been completed and groups together all previous `Patch` versions into a stable release
+- The **third digit** (`Patch`) represents a **Micro Version**. It is used for all `Minor` changes such as new small features, function improvements, bug fixes, or documentation updates
+
+`Patch` versions do **not** have a dedicated roadmap. Every Patch change is documented in the **Versions** folder\
+
+---
+
+<h4 style="font-size:1.5rem;">Version Agreement</h4>
+
+Each `Patch` file follows a set of rules that can evolve over time. The current **Version Agreement** is `0.0`\
+The first line of every file states the Version Agreement used for that file (*ex: Agreement Version : 0.0*)
+
+<details>
+<summary>Version 0.0</summary>
+
+- The file is organized using **tags** in the format `==== ==== ] $ [ ==== ====`\
+  There are **3 types of tags**: `Main Change` / `Little Change` / `Commit`
+
+- Each modification has a **title** and a **description**\
+  The title is composed of **3 parts**:
+  
+  - **Modification action**: a restricted keyword ( ex: `Created` / `Deleted` / `Append` / `Modified` / `Reworked` / `Fixed` / `Updated` )
+  - **Modification type**: the type of file/section affected by the change ( ex: `Documentation` / `Function` / `Variable` / `Advertisement` / `Raise` )
+  - **Modification section**: the location of the change, written as a path with `>` for classes/functions/variables/titles ( ex: `/WebArtifact/Global.py > Utility > Decompose()` )
+
+  The description have no rule
+
+</details>
+
+
+<!-- <h4 style="font-size:1.5rem;">Version Agreement</h4>
+
+Each `Patch` file are governed by established rules that can change over the time. The current Version Agreement is 0.0\
+The first line in every file is the Version Agreement used on the file (*ex : Agreement Version : 0.0*)
+
+<details>
+<summary>Version 0.0</summary>
+
+- Files is organised with balise '==== ==== ] $ [ ==== ===='\
+  There're 3 type of Balise : Main Change / Little Change / Commit
+- Each modification have a title and a description\
+  Title is composed of 3 parts : 
+  - modification change : Restricted word (ex : Created / Deleted / Append / Modified / Reworked / Fixed / Updated )
+  - modification type : It's the type of file / section who have been modifified / deleted ... (ex : Documentation / function / variable / Advertissment / raise)
+  - modification section : It's where the modification have been : composed with a path and '>' for class / function | for title in the doc file | for variable  (ex : /WebArtifact/Global.py > Utility > Decompose() ) 
+
+
+</details> -->
+
+
+
+---
+
+
+
+
 <h2 style="font-size:2.5rem;">Summuary</h2>
 
 
 
+
 <h2 style="font-size:2.5rem;">Utilisation</h2>
+
 
 
 

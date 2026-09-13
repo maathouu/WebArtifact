@@ -27,16 +27,16 @@ class UnexpectedError:
 
         return Context,DetailedContext
 
-    def InvalidSubprocess(ErrorModule,command):
-        if isinstance(ErrorModule,subprocess.CalledProcessError):
+    def InvalidSubprocess(ErrorModule,command): # TM
+        if isinstance(ErrorModule,subprocess.CalledProcessError): # if Check = True
             Context = ""
             DetailedContext = ErrorModule.stderr
         elif isinstance(ErrorModule,PermissionError):
-            Context = ""
+            Context = f"Invalid permission to execute the command : {command}"
         elif isinstance(ErrorModule,OSError):
             Context = ""
         elif isinstance(ErrorModule,FileNotFoundError):
-            Context = ""
+            Context = f"Invalid Path in command : {command}"
         
         if isinstance(ErrorModule,(FileNotFoundError,PermissionError,OSError)):
             DetailedContext = ErrorModule.strerror
