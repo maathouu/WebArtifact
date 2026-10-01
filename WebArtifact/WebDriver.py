@@ -13,15 +13,17 @@ class WebDriver:
             }
         })
         Data = Resp.json()
+        return Data
         print(Data)
 
 
     def GetStatus(Port):
         Resp = requests.get(f"http://127.0.0.1:{Port}/status")
         Data = Resp.json()
+        return Data
         print(Data)
 
 
 
 # WebDriver.NewSession(4444,"firefox")
-# WebDriver.GetStatus(4444)
+#WebDriver.GetStatus(4444)

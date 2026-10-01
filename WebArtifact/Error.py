@@ -51,10 +51,9 @@ class InvalidSocket(Exception):
     def __init__(self,
                 LogModule:object,
                 Context:str,
-                Port:str,
+                InstanceName:str,
                 Driver:str,
-                ParentModule:str,
-                Line:int,
+                Port:str,
 
                 ErrorModule:object=None,
                 DetailedContext:str=None,
@@ -64,16 +63,18 @@ class InvalidSocket(Exception):
         """
         Param: commands / Process ID / UsedPort / Processus Information
         """
-        self.GlobalContext = f"Error while analysing port {Port} for {Driver} in {ParentModule}"
+        self.GlobalContext = f"Error while analysing port {Port} for {InstanceName}"
         if Unexpected == "Subprocess":
             self.Context,self.DetailedContext = UnexpectedError.InvalidSubprocess(ErrorModule,Param["Command"])
         else:
             self.Context = Context
             self.DetailedContext = DetailedContext
 
-        self.ErrorModule = ErrorModule
+        self.InstanceName = InstanceName
+        self.Driver = Driver
         self.Port = int(Port)
-        self.Line = Line
+
+        self.ErrorModule = ErrorModule
         self.Param = Param
         super().__init__(self.Context)
         LogModule.SayError(self)
@@ -82,9 +83,8 @@ class InvalidUserSettings(Exception):
     def __init__(self,
                 LogModule:object,
                 Context:str,
+                InstanceName:str,
                 Driver:str,
-                ParentModule:str,
-                Line:int,
                 
                 ErrorModule:object=None,
                 DetailedContext:str=None,
@@ -93,7 +93,7 @@ class InvalidUserSettings(Exception):
         """
         Param: ApplicationNeeded / ApplicationGot / ApplicationPath / Port / UsedPort / ProfilName / IniProfil / IniProfilPath / TimeKeys / TimeKeysNeeded
         """
-        self.GlobalContext = f"Error while analysing user settings for {Driver} in {ParentModule}"
+        self.GlobalContext = f"Error while analysing user settings for Insatnce {InstanceName}"
         if Unexpected == "File":
             self.Context,self.DetailedContext = UnexpectedError.InvalidFile(ErrorModule,Param["File"])
         elif Unexpected == "Subprocess":
@@ -101,8 +101,11 @@ class InvalidUserSettings(Exception):
         else:
             self.Context = Context
             self.DetailedContext = DetailedContext
+
+        self.InstanceName = InstanceName
+        self.Driver = Driver
+
         self.ErrorModule = ErrorModule
-        self.Line = Line
         self.Param = Param
         super().__init__(self.Context)
         LogModule.SayError(self)
@@ -115,18 +118,16 @@ class BadUtilisation(Exception):
     def __init__(self,
                 LogModule:object,
                 Context:str,
-                Line:int,
                 
                 DetailedContext:str=None,
                 **Param) -> None:
         """
-        Param: SessionNameGot / SessionNameUsed
+        Param: InstanceNameGot / InstanceNameUsed / FunctionUsed
         """
         self.GlobalContext = f"Error with direct use of commands"
         self.Context = Context
         self.DetailedContext = DetailedContext
 
-        self.Line = Line
         self.Param = Param
         super().__init__(self.Context)
         LogModule.SayError(self)
@@ -139,9 +140,8 @@ class CantOpenDriver(Exception):
     def __init__(self,
                 LogModule:object,
                 Context:str,
+                InstanceName:str,
                 Driver:str,
-                ParentModule:str,
-                Line:int,
                 Port:str,
 
                 ErrorModule:object=None,
@@ -153,16 +153,51 @@ class CantOpenDriver(Exception):
         """
         Param: 
         """
-        self.GlobalContext = f"Error while analysing port {Port} for {Driver} in {ParentModule}"
+        self.GlobalContext = f"Error while attempting to open {Driver} for Instance {InstanceName}"
         if Unexpected == "Subprocess":
             self.Context,self.DetailedContext = UnexpectedError.InvalidSubprocess(ErrorModule,Param["Command"])
         else:
             self.Context = Context
             self.DetailedContext = DetailedContext
 
-        self.ErrorModule = ErrorModule
+        self.InstanceName = InstanceName
+        self.Driver = Driver
         self.Port = int(Port)
-        self.Line = Line
+
+        self.ErrorModule = ErrorModule
+        self.Param = Param
+        super().__init__(self.Context)
+        LogModule.SayError(self)
+
+class DriverConnection(Exception):
+    def __init__(self,
+                LogModule:object,
+                Context:str,
+                InstanceName:str,
+                Driver:str,
+                Port:str,
+                Method:str,
+                Route:str,
+
+                ErrorModule:object=None,
+                DetailedContext:str=None,
+                Unexpected:str=None,
+                
+                **Param
+                ) -> None:
+        """
+        Param: 
+        """
+        self.GlobalContext = f""
+        
+
+        self.InstanceName = InstanceName
+        self.Driver = Driver
+        self.Port = int(Port)
+        self.Method = Method
+        self.Route = Route
+
+        self.ErrorModule = ErrorModule
         self.Param = Param
         super().__init__(self.Context)
         LogModule.SayError(self)

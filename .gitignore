@@ -4,5 +4,6 @@ Docs/WebDriverDoc.md
 
 __pycache__/
 Docs/Versions/
+Docs/ToolBox
 
 *.log
