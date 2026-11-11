@@ -49,13 +49,13 @@ class Utility:
             TempLine = SubprocessResult.stdout.splitlines()[0]
             return ApplicationName.lower() in TempLine.lower(),TempLine.lower()
     
-    def GetSocket(Port:int) -> str:
+    def GetSocket(Port:str) -> str:
         try:
-            SubprocessResult = subprocess.run("netstat -ano | findstr "+str(Port),shell=True,capture_output=True,text=True,check=True)
+            SubprocessResult = subprocess.run("netstat -ano | findstr "+Port,shell=True,capture_output=True,text=True,check=True)
         except Exception as E:
             if type(E) == subprocess.CalledProcessError and E.returncode == 1: # TR
                 return ""
-            raise FlexError(Context="",ErrorModule=E,Unexpected="Subprocess",Command="netstat -ano | findstr "+str(Port))
+            raise FlexError(Context="",ErrorModule=E,Unexpected="Subprocess",Command="netstat -ano | findstr "+Port)
         return SubprocessResult.stdout.split("\n")
 
     def ReadIniFile(FilePath:str) -> dict:
@@ -102,7 +102,7 @@ class Utility:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 try:
                     s.bind(('', Port))
-                    return Port
+                    return str(Port)
                 except OSError:
                     continue
         try:
@@ -114,9 +114,9 @@ class Utility:
         
 
 class GlobalFunction:
-    def VerifySocket(LogModule,Port,ShutDownOtherSession,Driver,InstanceName):
+    def VerifySocket(LogModule:object,Port:str,ShutDownOtherSession:bool,Driver:str,InstanceName:str) -> None:
         
-        LogModule.Say(("Verifying port ",ConsoleColor.BLUE),(str(Port),ConsoleColor.PURPLE),StartSpace=1)
+        LogModule.Say(("Verifying port ",ConsoleColor.BLUE),(Port,ConsoleColor.PURPLE),StartSpace=1)
         # Get Active(s) Process on Port -
         try:SubprocessResult = Utility.GetSocket(Port)
         except FlexError as E:raise InvalidSocket(LogModule,E.Context,InstanceName,Driver,Port,
@@ -222,12 +222,13 @@ class GlobalFunction:
                                                             ErrorModule=E.ErrorModule,Unexpected=E.Unexpected,
                                                             Port=E.Port,Command=E.Command)
 
+        UserData["Port"] = str(UserData["Port"])
         if UserData["Port"] in PreUsedPort:
-            LogModule.Say("==> ",("Port ",ConsoleColor.YELLOW),(str(UserData["Port"]),ConsoleColor.PURPLE),(" is already 'pre' used by another Instance on the module",ConsoleColor.YELLOW))
+            LogModule.Say("==> ",("Port ",ConsoleColor.YELLOW),(UserData["Port"],ConsoleColor.PURPLE),(" is already 'pre' used by another Instance on the module",ConsoleColor.YELLOW))
         else:
             Comm("Add",("PreUsedPort",UserData["Port"]))
 
-        LogModule.Say("--> ",(str(UserData["Port"]),ConsoleColor.PURPLE))
+        LogModule.Say("--> ",(UserData["Port"],ConsoleColor.PURPLE))
 
         LogModule.Say(("Verifying Firefox Profil Name",ConsoleColor.BLUE),StartSpace=1)
         if UserData["ProfilName"] == "Temp" and UserData["ProfilPath"] == "":
@@ -253,11 +254,9 @@ class GlobalFunction:
                         if UserData["ProfilPath"] != "":
                             LogModule.Say("==> ",("No Profil named : ",ConsoleColor.YELLOW),(UserData["ProfilName"],ConsoleColor.PURPLE))
                         else:
-                            raise InvalidUserSettings(LogModule,
-                                                      f"No profil named '{UserData['ProfilName']}' for firefox",
-                                                      Driver,ParentModule,
+                            raise InvalidUserSettings(LogModule,f"No profil named '{UserData['ProfilName']}' for firefox",InstanceName,Driver,
                                                       DetailedContext=f"'{UserData['ProfilName']}' isn't present in {FirefoxProfilesIniPath}",
-                                                      ProfilName=UserData["ProfilName"],IniProfil=Profiles,IniProfilPath=FirefoxProfilesIniPath)
+                                                      ProfilName=UserData["ProfilName"],IniProfil=Profiles,IniProfilPath=FirefoxProfilesIniPath) #TT
             elif Browser == "Chrome":
                 ... # ChromiumUpdate
                     

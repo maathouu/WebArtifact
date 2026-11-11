@@ -1,27 +1,35 @@
 import requests
+from .Error import FlexError
 
 
 
 class WebDriver:
 
     def NewSession(Port,Browser):
-        Resp = requests.post(f"http://127.0.0.1:{Port}/session", json={
-            "capabilities": {
-                "alwaysMatch": {
-                    "browserName": Browser
+        try:
+            Resp = requests.post(f"http://127.0.0.1:{Port}/session", json={
+                "capabilities": {
+                    "alwaysMatch": {
+                        "browserName": Browser
+                    }
                 }
-            }
-        })
-        Data = Resp.json()
+            })
+        except:
+            raise FLexError()
+
+        try:
+            Data = Resp.json()
+        except:
+            raise FlexError()
+
         return Data
-        print(Data)
 
 
     def GetStatus(Port):
         Resp = requests.get(f"http://127.0.0.1:{Port}/status")
         Data = Resp.json()
         return Data
-        print(Data)
+        
 
 
 

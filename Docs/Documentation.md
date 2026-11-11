@@ -67,6 +67,22 @@ The first line of every file states the Version Agreement used for that file (*e
 
 </details>
 
+<details>
+<summary>Version 0.1</summary>
+
+- The file is organized using **tags** in the format `==== ==== ] $ [ ==== ====`\
+  There are **3 types of tags**: `Main Change` / `Little Change` / `Commit`
+
+- Each modification has a **title** and a **description**\
+  The title is composed of **3 parts**:
+  
+  - **Modification action**: a restricted keyword ( `Created` / `Deleted` / `Append` / `Modified` / `Renamed` / `Reworked` / `Fixed` / `Updated` )
+  - **Modification type**: the type of file/section affected by the change ( ex: `Documentation` / `Function` / `Variable` / `Advertisement` / `Raise` )
+  - **Modification section**: the location of the change, written as one or multiple paths separated by `&`, using `>` for classes/functions/variables/titles.  
+    ( ex: `/WebArtifact/Global.py > Utility > Decompose() & /WebArtifact/WebDriver.py` )
+
+
+</details>
 
 <!-- <h4 style="font-size:1.5rem;">Version Agreement</h4>
 

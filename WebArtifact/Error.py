@@ -44,7 +44,7 @@ class UnexpectedError:
         return Context,DetailedContext
 
 
-# ========================================= [ Global Error] =========================================
+# ========================================= [ Global Error ] =========================================
 
 
 class InvalidSocket(Exception):
@@ -111,7 +111,7 @@ class InvalidUserSettings(Exception):
         LogModule.SayError(self)
 
 
-# ========================================= [ WebArtifact Error] =========================================
+# ========================================= [ WebArtifact Error ] =========================================
 
 
 class BadUtilisation(Exception):
@@ -133,10 +133,10 @@ class BadUtilisation(Exception):
         LogModule.SayError(self)
 
 
-# ========================================= [ WebDriver Error] =========================================
+# ========================================= [ WebDriver Error ] =========================================
 
 
-class CantOpenDriver(Exception):
+class DriverLuanch(Exception):
     def __init__(self,
                 LogModule:object,
                 Context:str,
@@ -188,8 +188,8 @@ class DriverConnection(Exception):
         """
         Param: 
         """
-        self.GlobalContext = f""
-        
+        self.GlobalContext = f"Error while attempting to communicate with {Driver} for Instance {InstanceName}"
+        if Unexpected == "":None
 
         self.InstanceName = InstanceName
         self.Driver = Driver

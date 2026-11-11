@@ -99,7 +99,7 @@ class S:
 
     def OpenDriver(self,InstanceName="$") -> None:
         
-        InstanceName = self._VerifInstanceName(InstanceName,"OpenDriver")
+        InstanceName = self._VerifInstanceName(InstanceName,"OpenDriver",1)
         
         self.Browsers[InstanceName]["Statu"] = 2
 
@@ -116,9 +116,9 @@ class S:
 
     def NewSession(self,InstanceName="$") -> None:
 
-        InstanceName = self._VerifInstanceName(InstanceName,"NewSession")
+        InstanceName = self._VerifInstanceName(InstanceName,"NewSession",3)
 
-        self.Browsers[InstanceName]["Statu"] = 2
+        self.Browsers[InstanceName]["Statu"] = 4
 
         match self.Browsers[InstanceName]["Browser"]:
             case "Firefox":
@@ -141,7 +141,7 @@ class S:
 
 
 
-    def _VerifInstanceName(self,InstanceName,FunctionUsed) -> str:
+    def _VerifInstanceName(self,InstanceName,FunctionUsed,MinimumStatu) -> str:
         if not len(self.Browsers) > 0:
             raise BadUtilisation(self.GLog,
                                  "No Instance created",
@@ -156,9 +156,9 @@ class S:
                                  DetailedContext=f"InstanceName '{InstanceName}' haven't been created : '{[x for x in self.Browsers]}'",
                                  InstanceNameGot=InstanceName,InstanceNameUsed=[x for x in self.Browsers],FunctionUsed=FunctionUsed)
         
-        if self.Browsers[InstanceName]["Statu"] != 1:
+        if self.Browsers[InstanceName]["Statu"] < MinimumStatu:
             raise BadUtilisation(self.GLog,
-                                         f"Instance {InstanceName} hasn't a valid statu code",
-                                         DetailedContext=f"Instance {InstanceName} statu isn't equal to 1 : {self.Browsers[InstanceName]["Statu"]}",
-                                         InstanceName=InstanceName,InstanceStatu=self.Browsers[InstanceName]["Statu"],FunctionUsed=FunctionUsed)
+                                 f"Instance {InstanceName} hasn't a valid statu code",
+                                 DetailedContext=f"Instance {InstanceName} statu is inferior to the minimum value needed to execute the command : {MinimumStatu} >= {self.Browsers[InstanceName]['Statu']}",
+                                 InstanceName=InstanceName,InstanceStatu=self.Browsers[InstanceName]["Statu"],FunctionUsed=FunctionUsed)
         return InstanceName

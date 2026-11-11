@@ -44,7 +44,7 @@ class ConsoleColor:
 class LogManager:
     def __init__(self,mode="normal",save="console"):
         
-        self.Version = "16-07-2026.0"
+        self.Version = "09-11-2026.0"
         self.Save = save
         self.Category = "None"
         self.ErrorCategory = "None"
@@ -66,7 +66,7 @@ class LogManager:
 
     def Say(self,*Message,PrefixTime=True,PrefixCategory=True,StartSpace=0,Format=0):
         
-        if PrefixTime:Prefix =  ((f"[{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())}]",ConsoleColor.BOLD),)
+        if PrefixTime:Prefix =  ((f"[{time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}]",ConsoleColor.BOLD),)
         else:Prefix = ()
 
         if PrefixCategory:Prefix += (" | ",(self.Category,ConsoleColor.GREEN)," | : ")
