@@ -1,11 +1,12 @@
-l.py
-luancher.py
-Docs/WebDriverDoc.md
-
 __pycache__/
-Docs/Versions/
-Docs/ToolBox
+*.log
 
+Docs/Versions/
+Docs/ToDo.txt
+
+Docs/ToolBox
+Docs/WebDriverDoc.md
 Drivers
 
-*.log
+l.py
+luancher.py

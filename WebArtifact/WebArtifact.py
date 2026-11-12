@@ -1,11 +1,7 @@
-# import requests
-# import subprocess
-# import time
-# import socket
 import sys
 
 from .Log import LogManager,ConsoleColor
-from .Error import BadUtilisation
+from .Error import UsageError
 
 
 class S:
@@ -56,15 +52,12 @@ class S:
             InstanceName = str(self.InternalData["InstanceName"])
             self.InternalData["InstanceName"] += 1
         elif type(InstanceName) != str:
-            raise BadUtilisation(self.GLog,
-                                         "Custom Interface name need to be an str value",
-                                         DetailedContext=f"'{InstanceName}' is an {type(InstanceName)} value and not str",
-                                         InstanceNameGot=InstanceName,InstanceNameType=type(InstanceName))
+            raise UsageError("Custom instance name isn't an str value",
+                             Details={"InstanceName":InstanceName,"InstanceNameType":type(InstanceName)})
+
         if InstanceName in self.Browsers:
-            raise BadUtilisation(self.GLog,
-                                         "Instance name specified is already used",
-                                         DetailedContext=f"InstanceName '{InstanceName}' have already been created : '{[x for x in self.Browsers]}'",
-                                         InstanceNameGot=InstanceName,InstanceNameUsed=[x for x in self.Browsers])
+            raise UsageError("Custom instance name specified have already been created",
+                             Details={"Instancename":InstanceName,"InstanceNameList":[x for x in self.Browsers]})
             
         self.CurrentWorkingInstance = InstanceName
 
@@ -72,16 +65,16 @@ class S:
         self.GLog.Changecategory("Firefox profil verif")
         self.Browsers[InstanceName] = {
             "Module":FirefoxManager({
-                            "DriverPath":GeckodriverPath,
-                            "BrowserPath":FirefoxPath,
-                            "ProfilPath":ProfilPath,
-                            "ProfilName":ProfilName,
-                            "Port":Port,
-                            "InstanceName":InstanceName
-                           },
-                           self.GLog,
-                           self.Data["Instance"],
-                           self.Comm),
+                "DriverPath":GeckodriverPath,
+                "BrowserPath":FirefoxPath,
+                "ProfilPath":ProfilPath,
+                "ProfilName":ProfilName,
+                "Port":Port,
+                "InstanceName":InstanceName
+                },
+                self.GLog,
+                self.Data["Instance"],
+                self.Comm),
             "Browser":"Firefox",
             "Statu":0}
         
@@ -99,7 +92,7 @@ class S:
 
     def OpenDriver(self,InstanceName="$") -> None:
         
-        InstanceName = self._VerifInstanceName(InstanceName,"OpenDriver",1)
+        InstanceName = self._VerifInstanceName(InstanceName,1)
         
         self.Browsers[InstanceName]["Statu"] = 2
 
@@ -116,7 +109,7 @@ class S:
 
     def NewSession(self,InstanceName="$") -> None:
 
-        InstanceName = self._VerifInstanceName(InstanceName,"NewSession",3)
+        InstanceName = self._VerifInstanceName(InstanceName,3)
 
         self.Browsers[InstanceName]["Statu"] = 4
 
@@ -141,24 +134,18 @@ class S:
 
 
 
-    def _VerifInstanceName(self,InstanceName,FunctionUsed,MinimumStatu) -> str:
+    def _VerifInstanceName(self,InstanceName,MinimumStatu) -> str:
         if not len(self.Browsers) > 0:
-            raise BadUtilisation(self.GLog,
-                                 "No Instance created",
-                                 DetailedContext=f"You need to create a Instance before opening it's driver",
-                                 FunctionUsed=FunctionUsed)
+            raise UsageError("No instance created")
         
         if InstanceName == "$":
             InstanceName = self.CurrentWorkingInstance
         elif InstanceName not in self.Browsers:
-            raise BadUtilisation(self.GLog,
-                                 f"No instance named '{InstanceName}'",
-                                 DetailedContext=f"InstanceName '{InstanceName}' haven't been created : '{[x for x in self.Browsers]}'",
-                                 InstanceNameGot=InstanceName,InstanceNameUsed=[x for x in self.Browsers],FunctionUsed=FunctionUsed)
+            raise UsageError(f"No instance name '{InstanceName}'",
+                             Details={"InstanceName":InstanceName,"InstanceNameList":[x for x in self.Browsers]})
         
         if self.Browsers[InstanceName]["Statu"] < MinimumStatu:
-            raise BadUtilisation(self.GLog,
-                                 f"Instance {InstanceName} hasn't a valid statu code",
-                                 DetailedContext=f"Instance {InstanceName} statu is inferior to the minimum value needed to execute the command : {MinimumStatu} >= {self.Browsers[InstanceName]['Statu']}",
-                                 InstanceName=InstanceName,InstanceStatu=self.Browsers[InstanceName]["Statu"],FunctionUsed=FunctionUsed)
+            raise UsageError(f"Instance '{InstanceName}' hasn't a valid statu code",
+                             Details={"InstanceName":InstanceName,InstanceStatu:self.Browsers[InstanceName]["Statu"],"MinimumStatu":MinimumStatu})
+
         return InstanceName

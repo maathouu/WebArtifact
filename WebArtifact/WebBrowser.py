@@ -2,7 +2,7 @@ import subprocess
 
 from .Global import Utility,GlobalFunction
 from .Log import ConsoleColor
-from .Error import FlexError,CantOpenDriver
+from .Error import DriverError
 from .WebDriver import WebDriver
 
 
@@ -24,15 +24,11 @@ class FirefoxManager:
         try:
             self.Driver = subprocess.Popen([self.UserData["DriverPath"],"--port",self.UserData["Port"]],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
         except Exception as E:
-            raise DriverLuanch(self.LogModule,"Can't open geckodriver",self.UserData["InstanceName"],"geckodriver",self.UserData["Port"],
-                               ErrorModule=E,Unexpected="Subprocess",
-                               Command=f"{self.UserData['DriverPath']} --port {self.UserData['Port']}")  # TT
+            raise DriverError(f"Cannot start '{Path}': {E.strerror}",
+                              Details={"Command":f"{Path} --port {Port}","Port":Port}) from E
         
-        try:TimeTook = Utility.WaitOpenDriver(self.UserData["Port"],self.Data["OpenDriverTimeout"])
-        except FlexError as E:raise DriverLuanch(self.LogModule,"Geckodriver took too long time to open",self.UserData["InstanceName"],"geckodriver",self.UserData["Port"],
-                                                 DetailedContext=E.DetailedContext,
-                                                 TimeTook=E.TimeTook,Timeout=self.Data["OpenDriverTimeout"])  # TT
-
+        TimeTook = Utility.WaitOpenDriver(self.UserData["Port"],self.Data["OpenDriverTimeout"])
+        
         self.LogModule.Say("--> Geckdoriver took ",(TimeTook,ConsoleColor.ORANGE)," secondes to luanch")
         self.LogModule.Say(("Finished Opening geckodriver",ConsoleColor.CYAN),StartSpace=1)
 
@@ -40,10 +36,8 @@ class FirefoxManager:
     def NewSession(self) -> None:
 
         self.LogModule.Say("Creating new Firefox session on port : ",(self.UserData["Port"],ConsoleColor.PURPLE))
-        try:
-            Resp = WebDriver.GetStatus(self.UserData["Port"])
-        except FlexError as E:raise DriverLuanch(self.LogModule,"",self.UserData["InstanceName"],"geckodriver",self.UserData["Port"],E.Method,E.Route,
-                                                 DetailedContext=E.DetailedContext)
+        Resp = WebDriver.GetStatus(self.UserData["Port"])
+
         
         # try:
         #     Resp = WebDriver.GetStatus(self.UserData["Port"])

@@ -1,203 +1,211 @@
-import json
-import subprocess
+class WebArtifactError(Exception):
+    def __init__(self,Message,InstanceName=None,Details=None):
+        super().__init__(Message)
+        self.Message = Message
+        self.InstanceName = InstanceName
+        self.Details = Details or {}
+
+class UsageError(WebArtifactError): pass
+class ConfigError(WebArtifactError): pass
+class DriverError(WebArtifactError): pass
+class BrowserError(WebArtifactError): pass
 
 
-# ========================================= [ Error ToolBox ] =========================================
 
 
-class FlexError(Exception):
-    def __init__(self,**kwargs):
-        for Key,Value in kwargs.items():
-            setattr(self,Key,Value)
+# class FlexError(Exception):
+#     def __init__(self,**kwargs):
+#         for Key,Value in kwargs.items():
+#             setattr(self,Key,Value)
 
-class UnexpectedError:
-    def InvalidFile(ErrorModule,File):
-        if isinstance(ErrorModule,FileNotFoundError):
-            Context = f"Invalid Path : '{File}' -> Path dosn't exist"
-        elif isinstance(ErrorModule,PermissionError):
-            Context = f"Invalid Path : '{File}' -> Invalid Permission"
-        elif isinstance(ErrorModule,OSError):
-            Context = f"Invalid Path : '{File}' -> ..."
-        elif isinstance(ErrorModule,json.JSONDecodeError):
-            Context = f"Invalid File Content : '{File}' -> Can't convert file content into dict"
-            DetailedContext = ErrorModule.msg
+# class UnexpectedError:
+#     def InvalidFile(ErrorModule,File):
+#         if isinstance(ErrorModule,FileNotFoundError):
+#             Context = f"Invalid Path : '{File}' -> Path dosn't exist"
+#         elif isinstance(ErrorModule,PermissionError):
+#             Context = f"Invalid Path : '{File}' -> Invalid Permission"
+#         elif isinstance(ErrorModule,OSError):
+#             Context = f"Invalid Path : '{File}' -> ..."
+#         elif isinstance(ErrorModule,json.JSONDecodeError):
+#             Context = f"Invalid File Content : '{File}' -> Can't convert file content into dict"
+#             DetailedContext = ErrorModule.msg
 
-        if isinstance(ErrorModule,(FileNotFoundError,PermissionError,OSError)):
-            DetailedContext = ErrorModule.strerror
+#         if isinstance(ErrorModule,(FileNotFoundError,PermissionError,OSError)):
+#             DetailedContext = ErrorModule.strerror
 
-        return Context,DetailedContext
+#         return Context,DetailedContext
 
-    def InvalidSubprocess(ErrorModule,command): # TM
-        if isinstance(ErrorModule,subprocess.CalledProcessError): # if Check = True
-            Context = ""
-            DetailedContext = ErrorModule.stderr
-        elif isinstance(ErrorModule,PermissionError):
-            Context = f"Invalid permission to execute the command : {command}"
-        elif isinstance(ErrorModule,OSError):
-            Context = ""
-        elif isinstance(ErrorModule,FileNotFoundError):
-            Context = f"Invalid Path in command : {command}"
+#     def InvalidSubprocess(ErrorModule,command): # TM
+#         if isinstance(ErrorModule,subprocess.CalledProcessError): # if Check = True
+#             Context = ""
+#             DetailedContext = ErrorModule.stderr
+#         elif isinstance(ErrorModule,PermissionError):
+#             Context = f"Invalid permission to execute the command : {command}"
+#         elif isinstance(ErrorModule,OSError):
+#             Context = ""
+#         elif isinstance(ErrorModule,FileNotFoundError):
+#             Context = f"Invalid Path in command : {command}"
         
-        if isinstance(ErrorModule,(FileNotFoundError,PermissionError,OSError)):
-            DetailedContext = ErrorModule.strerror
+#         if isinstance(ErrorModule,(FileNotFoundError,PermissionError,OSError)):
+#             DetailedContext = ErrorModule.strerror
         
-        return Context,DetailedContext
+#         return Context,DetailedContext
 
 
-# ========================================= [ Global Error ] =========================================
+# # ========================================= [ Global Error ] =========================================
 
 
-class InvalidSocket(Exception):
-    def __init__(self,
-                LogModule:object,
-                Context:str,
-                InstanceName:str,
-                Driver:str,
-                Port:str,
+# class InvalidSocket(Exception):
+#     def __init__(self,
+#                 LogModule:object,
+#                 Context:str,
+#                 InstanceName:str,
+#                 Driver:str,
+#                 Port:str,
 
-                ErrorModule:object=None,
-                DetailedContext:str=None,
-                Unexpected:str=None,
-                **Param
-                ) -> None:
-        """
-        Param: commands / Process ID / UsedPort / Processus Information
-        """
-        self.GlobalContext = f"Error while analysing port {Port} for {InstanceName}"
-        if Unexpected == "Subprocess":
-            self.Context,self.DetailedContext = UnexpectedError.InvalidSubprocess(ErrorModule,Param["Command"])
-        else:
-            self.Context = Context
-            self.DetailedContext = DetailedContext
+#                 ErrorModule:object=None,
+#                 DetailedContext:str=None,
+#                 Unexpected:str=None,
+#                 **Param
+#                 ) -> None:
+#         """
+#         Param: commands / Process ID / UsedPort / Processus Information
+#         """
+#         self.GlobalContext = f"Error while analysing port {Port} for {InstanceName}"
+#         if Unexpected == "Subprocess":
+#             self.Context,self.DetailedContext = UnexpectedError.InvalidSubprocess(ErrorModule,Param["Command"])
+#         else:
+#             self.Context = Context
+#             self.DetailedContext = DetailedContext
 
-        self.InstanceName = InstanceName
-        self.Driver = Driver
-        self.Port = int(Port)
+#         self.InstanceName = InstanceName
+#         self.Driver = Driver
+#         self.Port = int(Port)
 
-        self.ErrorModule = ErrorModule
-        self.Param = Param
-        super().__init__(self.Context)
-        LogModule.SayError(self)
+#         self.ErrorModule = ErrorModule
+#         self.Param = Param
+#         super().__init__(self.Context)
+#         LogModule.SayError(self)
 
-class InvalidUserSettings(Exception):
-    def __init__(self,
-                LogModule:object,
-                Context:str,
-                InstanceName:str,
-                Driver:str,
+# class InvalidUserSettings(Exception):
+#     def __init__(self,
+#                 LogModule:object,
+#                 Context:str,
+#                 InstanceName:str,
+#                 Driver:str,
                 
-                ErrorModule:object=None,
-                DetailedContext:str=None,
-                Unexpected:str=None,
-                **Param) -> None:
-        """
-        Param: ApplicationNeeded / ApplicationGot / ApplicationPath / Port / UsedPort / ProfilName / IniProfil / IniProfilPath / TimeKeys / TimeKeysNeeded
-        """
-        self.GlobalContext = f"Error while analysing user settings for Insatnce {InstanceName}"
-        if Unexpected == "File":
-            self.Context,self.DetailedContext = UnexpectedError.InvalidFile(ErrorModule,Param["File"])
-        elif Unexpected == "Subprocess":
-            self.Context,self.DetailedContext = UnexpectedError.InvalidSubprocess(ErrorModule,Param["Command"])
-        else:
-            self.Context = Context
-            self.DetailedContext = DetailedContext
+#                 ErrorModule:object=None,
+#                 DetailedContext:str=None,
+#                 Unexpected:str=None,
+#                 **Param) -> None:
+#         """
+#         Param: ApplicationNeeded / ApplicationGot / ApplicationPath / Port / UsedPort / ProfilName / IniProfil / IniProfilPath / TimeKeys / TimeKeysNeeded
+#         """
+#         self.GlobalContext = f"Error while analysing user settings for Insatnce {InstanceName}"
+#         if Unexpected == "File":
+#             self.Context,self.DetailedContext = UnexpectedError.InvalidFile(ErrorModule,Param["File"])
+#         elif Unexpected == "Subprocess":
+#             self.Context,self.DetailedContext = UnexpectedError.InvalidSubprocess(ErrorModule,Param["Command"])
+#         else:
+#             self.Context = Context
+#             self.DetailedContext = DetailedContext
 
-        self.InstanceName = InstanceName
-        self.Driver = Driver
+#         self.InstanceName = InstanceName
+#         self.Driver = Driver
 
-        self.ErrorModule = ErrorModule
-        self.Param = Param
-        super().__init__(self.Context)
-        LogModule.SayError(self)
-
-
-# ========================================= [ WebArtifact Error ] =========================================
+#         self.ErrorModule = ErrorModule
+#         self.Param = Param
+#         super().__init__(self.Context)
+#         LogModule.SayError(self)
 
 
-class BadUtilisation(Exception):
-    def __init__(self,
-                LogModule:object,
-                Context:str,
+# # ========================================= [ WebArtifact Error ] =========================================
+
+
+# class BadUtilisation(Exception):
+#     def __init__(self,
+#                 LogModule:object,
+#                 Context:str,
                 
-                DetailedContext:str=None,
-                **Param) -> None:
-        """
-        Param: InstanceNameGot / InstanceNameUsed / FunctionUsed
-        """
-        self.GlobalContext = f"Error with direct use of commands"
-        self.Context = Context
-        self.DetailedContext = DetailedContext
+#                 DetailedContext:str=None,
+#                 **Param) -> None:
+#         """
+#         Param: InstanceNameGot / InstanceNameUsed / FunctionUsed
+#         """
+#         self.GlobalContext = f"Error with direct use of commands"
+#         self.Context = Context
+#         self.DetailedContext = DetailedContext
 
-        self.Param = Param
-        super().__init__(self.Context)
-        LogModule.SayError(self)
-
-
-# ========================================= [ WebDriver Error ] =========================================
+#         self.Param = Param
+#         super().__init__(self.Context)
+#         LogModule.SayError(self)
 
 
-class DriverLuanch(Exception):
-    def __init__(self,
-                LogModule:object,
-                Context:str,
-                InstanceName:str,
-                Driver:str,
-                Port:str,
+# # ========================================= [ WebDriver Error ] =========================================
 
-                ErrorModule:object=None,
-                DetailedContext:str=None,
-                Unexpected:str=None,
+
+# class DriverLuanch(Exception):
+#     def __init__(self,
+#                 LogModule:object,
+#                 Context:str,
+#                 InstanceName:str,
+#                 Driver:str,
+#                 Port:str,
+
+#                 ErrorModule:object=None,
+#                 DetailedContext:str=None,
+#                 Unexpected:str=None,
                 
-                **Param
-                ) -> None:
-        """
-        Param: 
-        """
-        self.GlobalContext = f"Error while attempting to open {Driver} for Instance {InstanceName}"
-        if Unexpected == "Subprocess":
-            self.Context,self.DetailedContext = UnexpectedError.InvalidSubprocess(ErrorModule,Param["Command"])
-        else:
-            self.Context = Context
-            self.DetailedContext = DetailedContext
+#                 **Param
+#                 ) -> None:
+#         """
+#         Param: 
+#         """
+#         self.GlobalContext = f"Error while attempting to open {Driver} for Instance {InstanceName}"
+#         if Unexpected == "Subprocess":
+#             self.Context,self.DetailedContext = UnexpectedError.InvalidSubprocess(ErrorModule,Param["Command"])
+#         else:
+#             self.Context = Context
+#             self.DetailedContext = DetailedContext
 
-        self.InstanceName = InstanceName
-        self.Driver = Driver
-        self.Port = int(Port)
+#         self.InstanceName = InstanceName
+#         self.Driver = Driver
+#         self.Port = int(Port)
 
-        self.ErrorModule = ErrorModule
-        self.Param = Param
-        super().__init__(self.Context)
-        LogModule.SayError(self)
+#         self.ErrorModule = ErrorModule
+#         self.Param = Param
+#         super().__init__(self.Context)
+#         LogModule.SayError(self)
 
-class DriverConnection(Exception):
-    def __init__(self,
-                LogModule:object,
-                Context:str,
-                InstanceName:str,
-                Driver:str,
-                Port:str,
-                Method:str,
-                Route:str,
+# class DriverConnection(Exception):
+#     def __init__(self,
+#                 LogModule:object,
+#                 Context:str,
+#                 InstanceName:str,
+#                 Driver:str,
+#                 Port:str,
+#                 Method:str,
+#                 Route:str,
 
-                ErrorModule:object=None,
-                DetailedContext:str=None,
-                Unexpected:str=None,
+#                 ErrorModule:object=None,
+#                 DetailedContext:str=None,
+#                 Unexpected:str=None,
                 
-                **Param
-                ) -> None:
-        """
-        Param: 
-        """
-        self.GlobalContext = f"Error while attempting to communicate with {Driver} for Instance {InstanceName}"
-        if Unexpected == "":None
+#                 **Param
+#                 ) -> None:
+#         """
+#         Param: 
+#         """
+#         self.GlobalContext = f"Error while attempting to communicate with {Driver} for Instance {InstanceName}"
+#         if Unexpected == "":None
 
-        self.InstanceName = InstanceName
-        self.Driver = Driver
-        self.Port = int(Port)
-        self.Method = Method
-        self.Route = Route
+#         self.InstanceName = InstanceName
+#         self.Driver = Driver
+#         self.Port = int(Port)
+#         self.Method = Method
+#         self.Route = Route
 
-        self.ErrorModule = ErrorModule
-        self.Param = Param
-        super().__init__(self.Context)
-        LogModule.SayError(self)
+#         self.ErrorModule = ErrorModule
+#         self.Param = Param
+#         super().__init__(self.Context)
+#         LogModule.SayError(self)

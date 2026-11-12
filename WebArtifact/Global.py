@@ -6,25 +6,62 @@ import json
 import re
 
 from .Log import ConsoleColor
-from .Error import FlexError,InvalidSocket,InvalidUserSettings
+from .Error import ConfigError,DriverError
 from .WebDriver import WebDriver
 
 class Utility:
-    # def Decompose(Text:str) -> list:
-    #     Start = 0
-    #     Result= []
-    #     Index = 0
-    #     while Index < len(Text):
-    #         if Text[Index] == " ":
-    #             if Start != Index:
-    #                 Result.append(Text[Start:Index])
-    #             while Text[Index] == " " and Index < len(Text)-1:
-    #                 Index+=1
-    #             Start = Index
-    #         Index += 1
-    #     if len(Text) > 0 and Text[Index-1] != " ":
-    #         Result.append(Text[Start:Index])
-    #     return Result
+    def RunCommand(Command:tuple,ErrorClass:object,
+                   Shell:bool=False,CaptureOutpout:bool=False,Text:bool=False,Check:bool=False,TimeOut:int=5) -> subprocess.CompletedProcess:
+        
+        CommandText = " ".join(map(str,Command))
+        try:
+            return subprocess.run(Command,shell=Shell,capture_output=CaptureOutpout,text=Text,check=Check,timeout=TimeOut)
+        
+        except FileNotFoundError as E:
+            raise ErrorClass(f"Command not found : '{E.filename or CommandText}'",
+                             Details={"Command":CommandText,"File":E.filename}) from E
+        except PermissionError as E:
+            raise ErrorClass(f"Permission denied while running '{CommandText}'",
+                             Details={"Command":CommandText,"File":E.filename}) from E
+        
+        except subprocess.TimeoutExpired as E:
+            raise ErrorClass(f"'{CommandText}' did not finish within {TimeOut}s",
+                             Details={"Command":CommandText,"TimeOut":TimeOut}) from E
+        except subprocess.CalledProcessError as E:
+            raise ErrorClass(f"'{CommandText}' failed with exit code {E.returncode}",
+                             Details={"Command":CommandText,"ReturnCode":E.returncode,"Stderr":E.stderr}) from E
+        
+        except OSError as E:
+            raise ErrorClass(f"System error while running '{CommandText}' : {E.strerror}",
+                             Details={"Command":CommandText,"Errno":E.errno}) from E
+
+    def OpenFile(Path:str,ErrorClass:object,OutPout:str="ReadLines",Encoding:str="utf-8") -> list[str] | dict:
+        try:
+            with open(Path,"r",encoding=Encoding) as f:
+                match OutPout:
+                    case "ReadLines":
+                        Content = f.readlines()
+                    case "Json":
+                        Content = json.load(f)
+        
+        except FileNotFoundError as E:
+            raise ErrorClass(f"File not found : '{Path}'",
+                             Details={"Path":Path}) from E
+        except PermissionError as E:
+            raise ErrorClass(f"Permission denied while reading '{Path}'",
+                             Details={"Path":Path}) from E
+        except json.JSONDecodeError as E:
+            raise ErrorClass(f"Invalid JSON in '{Path}' : {E.msg} (line {E.lineno}, column {E.colno})",
+                             Details={"Path":Path,"Line":E.lineno,"Column":E.colno}) from E
+        
+        except OSError as E:
+            raise ErrorClass(f"Cannot read '{Path}' : {E.strerror or E}",
+                             Details={"Path":Path,"Errno":E.errno}) from E
+        except ValueError as E:
+            raise ErrorClass(f"Invalid content in '{Path}' : {E}",
+                             Details={"Path":Path}) from E
+        
+        return Content
 
     def SupFLSpace(Text:str) -> str:
         if len(Text) > 1:
@@ -40,28 +77,17 @@ class Utility:
             return Text
         
     def IsValidApplication(ApplicationPath:str,ApplicationName:str) -> tuple[bool,str]:
-            if not os.path.isfile(ApplicationPath):
-                raise FileNotFoundError("",f"'{ApplicationPath}' isn't a valid path")
-            try:
-                SubprocessResult = subprocess.run([ApplicationPath,"--version"],capture_output=True,text=True)
-            except Exception as E:
-                raise FlexError(Context="",ErrorModule=E,Unexpected="Subprocess",Command=f"{ApplicationPath} --version")
-            TempLine = SubprocessResult.stdout.splitlines()[0]
+            Result = Utility.RunCommand([ApplicationPath,"--version"],ConfigError,CaptureOutpout=True,Text=True).stdout
+            TempLine = Result.splitlines()[0]
             return ApplicationName.lower() in TempLine.lower(),TempLine.lower()
     
     def GetSocket(Port:str) -> str:
-        try:
-            SubprocessResult = subprocess.run("netstat -ano | findstr "+Port,shell=True,capture_output=True,text=True,check=True)
-        except Exception as E:
-            if type(E) == subprocess.CalledProcessError and E.returncode == 1: # TR
-                return ""
-            raise FlexError(Context="",ErrorModule=E,Unexpected="Subprocess",Command="netstat -ano | findstr "+Port)
-        return SubprocessResult.stdout.split("\n")
+        Result = Utility.RunCommand(["netstat","-ano","|","findstr",Port],DriverError,Shell=True,CaptureOutpout=True,Text=True)
+        return Result.stdout.split("\n") if Result.returncode == 0 else ""
 
     def ReadIniFile(FilePath:str) -> dict:
         result = {}
-        with open(FilePath,"r") as f:
-            File = f.readlines()
+        File = Utility.OpenFile(FilePath,ConfigError)
 
         ActualSection = None
         for Line in File:
@@ -84,15 +110,8 @@ class Utility:
                     return str(time.time() - TimeStart)
             except (ConnectionRefusedError,socket.timeout,OSError):
                 time.sleep(0.1)
-        raise FlexError(Context=f"Port {Port} took too long time to luanch",DetailedContext=f"Driver at port {Port} exceded timeout : {time.time()-TimeStart} < {TimeOut}",
-                        TimeTook=time.time()-TimeStart) # TT
-
-    def ReadJsonFile(FilePath:str) -> dict:
-        try:
-            with open(FilePath, "r") as File:
-                return json.load(File)
-        except Exception as E:
-            raise FlexError(Context="",ErrorModule=E,Unexpected="File",File=FilePath)
+        raise DriverError(f"Driver on Port {Port} Exceded timeout of {TimeOut}s",
+                          Details={"TimeOut":TimeOut,"Port":Port})
         
     def GetFreeRegistredPort(PortRange:tuple,PortForbidden:tuple) -> int:
         PortsCandidates = [Port for Start,End in PortRange for Port in range(Start,End)]
@@ -105,56 +124,47 @@ class Utility:
                     return str(Port)
                 except OSError:
                     continue
-        try:
-            SubprocessResult = subprocess.run("netstat -n",capture_output=True)
-        except Exception as E:
-            raise FlexError(Content="",Port=Port,ErrorModule=E,Unexpected="Subprocess",Command="netstat -n") # TT
-        
-        return list(set(range(49152, 65535)) - set([int(x) for x in list(set(re.findall(rb"\b\d+\.\d+.\d+.\d+:(\d+)\b", SubprocessResult.stdout)))]))[0] # TM
+
+        Result = Utility.RunCommand(["netstat","-n"],ConfigError,CaptureOutpout=True,Text=True).stdout
+
+        return list(set(range(49152,65535)) - set([int(x) for x in list(set(re.findall(rb"\b\d+\.\d+.\d+.\d+:(\d+)\b",Result)))]))[0]
         
 
 class GlobalFunction:
     def VerifySocket(LogModule:object,Port:str,ShutDownOtherSession:bool,Driver:str,InstanceName:str) -> None:
         
         LogModule.Say(("Verifying port ",ConsoleColor.BLUE),(Port,ConsoleColor.PURPLE),StartSpace=1)
-        # Get Active(s) Process on Port -
-        try:SubprocessResult = Utility.GetSocket(Port)
-        except FlexError as E:raise InvalidSocket(LogModule,E.Context,InstanceName,Driver,Port,
-                                                  ErrorModule=E.ErrorModule,Unexpected=E.Unexpected,Command=E.Command)
 
-        if SubprocessResult != ['']:
+        Result = Utility.GetSocket(Port)
+
+        if Result != ['']:
             ProcList = []
             
-            for Line in SubprocessResult:
+            for Line in Result:
                 DecomposedLine = Line.split()
                 # DecomposedLine arch : [Protocol , LocalIP , RemoteIP , Status , PID]
                 if len(DecomposedLine) > 1:
                     DecomposedLine[-1] = DecomposedLine[-1].replace("\r","").replace("\n","")
                     
-                    try:
-                        # Get Executable Path with the PID in Powershell
-                        ExecutablePath = subprocess.run(["powershell","-NoProfile","-Command",f"(Get-Process -Id {DecomposedLine[-1]}).Path"],capture_output=True,text=True,check=True).stdout.strip()
-                    except Exception as E:
-                        raise InvalidSocket(LogModule,f"Getting executable path of PID {DecomposedLine[-1]}",InstanceName,Driver,Port,
-                                            ErrorModule=E,Unexpected="Subprocess",
-                                            Command=f"wmic process where processid={DecomposedLine[-1]} get ExecutablePath",ProcessID=DecomposedLine[-1])
-                    
+                    # Get Executable Path with the PID in Powershell
+                    ExecutablePath = Utility.RunCommand(["powershell","-NoProfile","-Command",f"(Get-Process -Id {DecomposedLine[-1]}).Path"],DriverError,CaptureOutpout=True,Text=True).stdout.strip()
+
                     ProcList.append({"Type":DecomposedLine[0],"LocalAdress":DecomposedLine[1],"DistantAdress":DecomposedLine[2],"Statu":(DecomposedLine[3] if DecomposedLine[0] == "TCP" else ""),"PID":DecomposedLine[-1],"Path":ExecutablePath})
                     LogModule.Say("--> ",(str(ProcList[-1]),ConsoleColor.PURPLE))
 
                 for Line in ProcList:
                     
                     if Line["Type"] == "UDP":
-                        raise InvalidSocket(LogModule,f"Verifying processus informations on port {Port}",InstanceName,Driver,Port,
-                                            DetailedContext=f"Port {Port} have already an UDP connection",
-                                            ProcInfo=Line)
+                        raise DriverError(f"Port {Port} have already an active UDP connection",
+                                          Details={"Port":Port,"Processus":Line})
                     
                     if Line ["Statu"] == "LISTENING":
-                    
-                        if not os.path.basename(Line["Path"]).lower() in (Driver,os.path.splitext(Driver)[0]):
-                            raise InvalidSocket(LogModule,f"'{os.path.basename(Line['Path']).lower()}' isn't '{Driver}'",InstanceName,Driver,Port,
-                                                DetailedContext=f"'{os.path.basename(Line['Path']).lower()}' isn't equal to '{Driver}' or '{os.path.splitext(Driver)[0]}'",
-                                                ApplicationName=os.path.basename(Line["Path"]).lower(),ProcInfo=Line)
+                        
+                        ApplicationName = os.path.basename(Line["Path"]).lower()
+                        if not ApplicationName in (Driver,os.path.splitext(Driver)[0]):
+                            raise DriverError(f"'{ApplicationName}' is already listenning on port {Port}",
+                                              Details={"Port":Port,"ApplicationName":ApplicationName})
+
                         # try:
                         #     response = requests.get(f"http://localhost:{Port}/status")
                         #     print(response)
@@ -184,43 +194,32 @@ class GlobalFunction:
         LogModule.Say(("Verifying Applications Path",ConsoleColor.BLUE),StartSpace=1)
         for AppliPath,AppliName in ((UserData["DriverPath"],os.path.splitext(Driver)[0]),(UserData["BrowserPath"],Browser)):
             
-            try:Result = Utility.IsValidApplication(AppliPath,AppliName)
-            except FlexError as E:raise InvalidUserSettings(LogModule,E.Context,InstanceName,Driver,
-                                                            ErrorModule=E.ErrorModule,Unexpected=E.Unexpected,Command=E.Command)
+            Result = Utility.IsValidApplication(AppliPath,AppliName)
 
             if Result[0]:
                 LogModule.Say("--> ",(Result[1],ConsoleColor.PURPLE))
             else:
-                raise InvalidUserSettings(LogModule,f"Invalid '{AppliName}' Path",InstanceName,Driver,
-                                          DetailedContext=f"{Result[1]} isn't a valid application name for {AppliName}",
-                                          ApplicationNeeded=AppliName,ApplicationGot=Result[1],ApplicationPath=AppliPath)
+                raise ConfigError(f"{Result[1]} isn't a valid application name for {AppliName}",
+                                  Details={"ApplicationName":AppliName,"SubprocessResult":Result[1],"SubprocessPath":AppliPath})
         
         LogModule.Say(("Verifying Port Value",ConsoleColor.BLUE),StartSpace=1) 
         if UserData["Port"] != "auto":
             try:
                 UserData["Port"] = int(UserData["Port"])
-            except ValueError as E:
-                raise InvalidUserSettings(LogModule,f"Can't convert '{UserData['Port']}' to an int value",InstanceName,Driver,
-                                          ErrorModule=E,DetailedContext=f"ValueError : '{UserData['Port']}' type is '{type(UserData['Port'])}' and can't be an int value",
-                                          Port=UserData["Port"])
-            except OverflowError as E:
-                raise InvalidUserSettings(LogModule,f"Can't convert '{UserData['Port']}' to an int value",InstanceName,Driver,
-                                          ErrorModule=E,DetailedContext=f"OverflowError : '{UserData['Port']}' is an too hight number to be converted",
-                                          Port=UserData["Port"])
+            except (ValueError, TypeError, OverflowError) as E:
+                raise ConfigError(f"Invalid Port setting : expected 'auto' or an integer, got {UserData['Port']}",
+                                  Details={"Value":UserData["Port"],"ValueType":type(UserData["Port"])})
+
             if not 1024 < UserData["Port"] < 65536:
-                raise InvalidUserSettings(LogModule,f"Incorrect Port number selected",InstanceName,Driver,
-                                          DetailedContext=f"Port need to be between 1024 and 65536 not included",
-                                          Port=UserData["Port"])
+                raise ConfigError(f"Port need to be between 1024 and 65536 not included",
+                                  Details={"Port":UserData["Port"]})
+
             if UserData["Port"] in UsedPort:
-                raise InvalidUserSettings(LogModule,f"Port '{UserData['Port']}' is already used in this module by another active Instance",InstanceName,Driver,
-                                          DetailedContext=f"'{UserData['Port']}' is present in {str(UsedPort)}",
-                                          UsedPort=UsedPort,Port=UserData["Port"])
+                raise ConfigError(f"'{UserData['Port']}' is present in used port : {str(UsedPort)}",
+                                  Details={"Port":UserData["Port"],"UsedPort":UsedPort})
         else:
             
-            try:UserData["Port"] = Utility.GetFreeRegistredPort(((4434, 4440), (4461, 4479), (4489, 4499), (4504, 4533)),PreUsedPort)
-            except FlexError as E:raise InvalidUserSettings(LogModule,E.Content,InstanceName,Driver,
-                                                            ErrorModule=E.ErrorModule,Unexpected=E.Unexpected,
-                                                            Port=E.Port,Command=E.Command)
+            Utility.GetFreeRegistredPort(((4434, 4440), (4461, 4479), (4489, 4499), (4504, 4533)),PreUsedPort)
 
         UserData["Port"] = str(UserData["Port"])
         if UserData["Port"] in PreUsedPort:
@@ -254,48 +253,42 @@ class GlobalFunction:
                         if UserData["ProfilPath"] != "":
                             LogModule.Say("==> ",("No Profil named : ",ConsoleColor.YELLOW),(UserData["ProfilName"],ConsoleColor.PURPLE))
                         else:
-                            raise InvalidUserSettings(LogModule,f"No profil named '{UserData['ProfilName']}' for firefox",InstanceName,Driver,
-                                                      DetailedContext=f"'{UserData['ProfilName']}' isn't present in {FirefoxProfilesIniPath}",
-                                                      ProfilName=UserData["ProfilName"],IniProfil=Profiles,IniProfilPath=FirefoxProfilesIniPath) #TT
+                            raise ConfigError(f"'{UserData['ProfilName']}' isn't present in {FirefoxProfilesIniPath}",
+                                              Details={"ProfilName":UserData["ProfilName"],"IniProfil":Profiles,IniProfilPath:FirefoxProfilesIniPath})
+
             elif Browser == "Chrome":
                 ... # ChromiumUpdate
                     
         else:
             LogModule.Say("--> No profil name set")
             LogModule.Say(("Verifying Firefox Profil Path",ConsoleColor.BLUE),StartSpace=1)
-            if os.path.isdir(UserData["ProfilPath"]):
-                if Browser == "firefox":
-                    FirefoxOptionalFiles = {
-                        "prefs.js",         # créé au 1er lancement
-                        "places.sqlite",    # Historique et favoris
-                        "cookies.sqlite",   # Cookies
-                        "cert9.db",         # Certificats 
-                        "key4.db"           # Mots de passe 
-                    }
-                    TimesFilePath = os.path.join(UserData["ProfilPath"],"times.json")
-                    
-                    try:TimesFile = Utility.ReadJsonFile(TimesFilePath)
-                    except Exception as E:raise InvalidUserSettings(LogModule,E.Context,InstanceName,Driver,
-                                                                    ErrorModule=E.ErrorModule,Unexpected=E.Unexpected,
-                                                                    File=E.File)
-                    
-                    LogModule.Say("--> ",(f"{'times.json':<20}",ConsoleColor.PURPLE),": ",("present",ConsoleColor.BOLD))
-                    if ("created","firstUse") != tuple(TimesFile.keys()):
-                        raise InvalidUserSettings(LogModule,f"Invalid times.json content",InstanceName,Driver,
-                                                  DetailedContext=f"times.json keys : '{tuple(TimesFile.keys())}' isn't equal to '{('created','firstUse')}'",
-                                                  TimeKeys=tuple(TimesFile.keys()),TimeKeysNeeded=tuple(TimesFile.keys()))
-                    for OptionalFile in FirefoxOptionalFiles:
-                        LogModule.Say("--> ",(f"{OptionalFile:<20}",ConsoleColor.PURPLE),": ",(("present" if os.path.isfile(os.path.join(UserData["ProfilPath"],OptionalFile)) else "absent"),ConsoleColor.BOLD))
-
-                    if TimesFile["firstUse"] == None:
-                        LogModule.Say("==> ",(f"{TimesFilePath}",ConsoleColor.PURPLE),(" never been luanch before",ConsoleColor.YELLOW))
+            
+            TimesFilePath = os.path.join(UserData["ProfilPath"],"times.json")
+            TimesFile = Utility.OpenFile(TimesFilePath,ConfigError,OutPout="Json")
+            
+            if Browser == "firefox":
+                FirefoxOptionalFiles = {
+                    "prefs.js",         # créé au 1er lancement
+                    "places.sqlite",    # Historique et favoris
+                    "cookies.sqlite",   # Cookies
+                    "cert9.db",         # Certificats 
+                    "key4.db"           # Mots de passe 
+                }
+                TimesFilePath = os.path.join(UserData["ProfilPath"],"times.json")
                 
-                elif Browser == "chrome":
-                    ... # ChromiumUpdate
+                LogModule.Say("--> ",(f"{'times.json':<20}",ConsoleColor.PURPLE),": ",("present",ConsoleColor.BOLD))
+                if ("created","firstUse") != tuple(TimesFile.keys()):
+                    raise ConfigError(f"times.json keys : '{tuple(TimesFile.keys())}' isn't equal to '{('created','firstUse')}'",
+                                        Details={"TimeKeys":tuple(TimesFile.keys()),"TimeKeysNeeded":tuple(TimesFile.keys())})
+                                        
+                for OptionalFile in FirefoxOptionalFiles:
+                    LogModule.Say("--> ",(f"{OptionalFile:<20}",ConsoleColor.PURPLE),": ",(("present" if os.path.isfile(os.path.join(UserData["ProfilPath"],OptionalFile)) else "absent"),ConsoleColor.BOLD))
 
-            elif os.path.isfile(UserData["ProfilPath"]):
-                raise NotADirectoryError("",f"'{UserData['ProfilPath']}' isn't a directory but a file")
-            else:
-                raise FileNotFoundError("",f"'{UserData['ProfilPath']}' isn't a valid path")
+                if TimesFile["firstUse"] == None:
+                    LogModule.Say("==> ",(f"{TimesFilePath}",ConsoleColor.PURPLE),(" never been luanch before",ConsoleColor.YELLOW))
+            
+            elif Browser == "chrome":
+                ... # ChromiumUpdate
+
         LogModule.Say(("Finished verifying User settings",ConsoleColor.CYAN),StartSpace=1)
         return UserData
