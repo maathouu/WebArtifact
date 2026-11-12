@@ -93,7 +93,6 @@ class S:
     def OpenDriver(self,InstanceName="$") -> None:
         
         InstanceName = self._VerifInstanceName(InstanceName,1)
-        
         self.Browsers[InstanceName]["Statu"] = 2
 
         match self.Browsers[InstanceName]["Browser"]:

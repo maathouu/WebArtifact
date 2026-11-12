@@ -103,8 +103,7 @@ class Utility:
 
     def WaitOpenDriver(Port:str,TimeOut:int) -> int:
         TimeStart = time.time()
-        Finished = False
-        while time.time() - TimeStart < TimeOut and  not Finished:
+        while time.time() - TimeStart < TimeOut:
             try:
                 with socket.create_connection(("localhost", Port),timeout=0.1):
                     return str(time.time() - TimeStart)
@@ -131,9 +130,13 @@ class Utility:
         
 
 class GlobalFunction:
-    def VerifySocket(LogModule:object,Port:str,ShutDownOtherSession:bool,Driver:str,InstanceName:str) -> None:
+    def VerifySocket(LogModule:object,Comm:object,Port:str,ShutDownOtherSession:bool,Driver:str,InstanceName:str) -> None:
         
         LogModule.Say(("Verifying port ",ConsoleColor.BLUE),(Port,ConsoleColor.PURPLE),StartSpace=1)
+        UsedPort = Comm()["UsedPort"]
+        if Port in UsedPort:
+            raise DriverError(f"Port {Port} is already used by an active driver on this session",
+                              Details={"Port":Port,"UsedPort":UsedPort})
 
         Result = Utility.GetSocket(Port)
 
@@ -152,37 +155,29 @@ class GlobalFunction:
                     ProcList.append({"Type":DecomposedLine[0],"LocalAdress":DecomposedLine[1],"DistantAdress":DecomposedLine[2],"Statu":(DecomposedLine[3] if DecomposedLine[0] == "TCP" else ""),"PID":DecomposedLine[-1],"Path":ExecutablePath})
                     LogModule.Say("--> ",(str(ProcList[-1]),ConsoleColor.PURPLE))
 
-                for Line in ProcList:
+            for Line in ProcList:
+                
+                if Line["Type"] == "UDP":
+                    raise DriverError(f"Port {Port} have already an active UDP connection",
+                                        Details={"Port":Port,"Processus":Line})
+                
+                if Line ["Statu"] == "LISTENING":
                     
-                    if Line["Type"] == "UDP":
-                        raise DriverError(f"Port {Port} have already an active UDP connection",
-                                          Details={"Port":Port,"Processus":Line})
-                    
-                    if Line ["Statu"] == "LISTENING":
-                        
-                        ApplicationName = os.path.basename(Line["Path"]).lower()
-                        if not ApplicationName in (Driver,os.path.splitext(Driver)[0]):
-                            raise DriverError(f"'{ApplicationName}' is already listenning on port {Port}",
-                                              Details={"Port":Port,"ApplicationName":ApplicationName})
+                    ApplicationName = os.path.basename(Line["Path"]).lower()
+                    if not ApplicationName in (Driver,os.path.splitext(Driver)[0]):
+                        raise DriverError(f"'{ApplicationName}' is already listenning on port {Port}",
+                                            Details={"Port":Port,"ApplicationName":ApplicationName})
 
-                        # try:
-                        #     response = requests.get(f"http://localhost:{Port}/status")
-                        #     print(response)
-                        # except Exception as E:
-                        #     print("jpp wola")
-                        
-                        # if response.status_code != 200:
-                        #     raise InvalidSocket()
-                        
-                        
-                    elif Line["Statu"] in ("ESTABLISHED","CLOSE_WAIT","SYN_SENT","SYN_RECEIVED"):
-                        None # ToDO
-                    elif Line["Statu"] == "TIME_WAIT":
-                        None # ToDo
+                    DriverResponse = WebDriver.GetStatus(Port)
+                    
+                elif Line["Statu"] in ("ESTABLISHED","CLOSE_WAIT","SYN_SENT","SYN_RECEIVED"):
+                    None # ToDO
+                elif Line["Statu"] == "TIME_WAIT":
+                    None # ToDo
             else:
                 LogModule.Say("==> ",("This socket has no application associated with",ConsoleColor.YELLOW))
 
-    def VerifyUserSettings(LogModule,UserData,Comm,Driver,Browser,InstanceName):
+    def VerifyUserSettings(LogModule:object,Comm:object,UserData:dict,Driver:str,Browser:str,InstanceName:str):
         if Driver == "geckodriver.exe":
             UserData["FirefoxOptions"] = {"args": [],"binary":UserData["BrowserPath"]}
         elif Driver == "":
@@ -233,28 +228,33 @@ class GlobalFunction:
         if UserData["ProfilName"] == "Temp" and UserData["ProfilPath"] == "":
             LogModule.Say("--> Firefox Profil Name: Temp")
             LogModule.Say("==> ",("A temporary file will be created and deleted automatically",ConsoleColor.YELLOW))
+        
         elif UserData["ProfilName"] != "Temp":
             if Browser == "firefox":
                 FirefoxProfilesIniPath = os.path.join(os.environ.get("APPDATA", ""),"Mozilla","Firefox","profiles.ini")
+                
                 if not os.path.isfile(FirefoxProfilesIniPath):
                     LogModule.Say("==> ",(FirefoxProfilesIniPath,ConsoleColor.PURPLE),("dosn't exist",ConsoleColor.YELLOW))
                 else:
 
                     Profiles = Utility.ReadIniFile(FirefoxProfilesIniPath)
                     ProfilesInfos = {}
+                    
                     for Profile in Profiles:
                         if Profile[:7] == "Profile":
                             LogModule.Say("--> Name : ",(f"{Profiles[Profile]['Name']:<20}",ConsoleColor.PURPLE)," / Path : ",(Profiles[Profile]["Path"],ConsoleColor.PURPLE))
                             ProfilesInfos[Profiles[Profile]["Name"]] = Profiles[Profile]["Path"]
+                    
                     if UserData["ProfilName"] in ProfilesInfos:
                         UserData["FirefoxOptions"]["args"] += (["-profile", os.path.join(os.environ.get("APPDATA", ""),"Mozilla","Firefox",ProfilesInfos[UserData["ProfilName"]])])
                         LogModule.Say("==> ",("Firefox Profil Name: ",ConsoleColor.YELLOW),(UserData["ProfilName"],ConsoleColor.PURPLE)," / Profil Path : ",(UserData["FirefoxOptions"]["args"][1],ConsoleColor.PURPLE))
+                    
                     else:
                         if UserData["ProfilPath"] != "":
                             LogModule.Say("==> ",("No Profil named : ",ConsoleColor.YELLOW),(UserData["ProfilName"],ConsoleColor.PURPLE))
                         else:
                             raise ConfigError(f"'{UserData['ProfilName']}' isn't present in {FirefoxProfilesIniPath}",
-                                              Details={"ProfilName":UserData["ProfilName"],"IniProfil":Profiles,IniProfilPath:FirefoxProfilesIniPath})
+                                              Details={"ProfilName":UserData["ProfilName"],"IniProfil":Profiles,"IniProfilPath":FirefoxProfilesIniPath})
 
             elif Browser == "Chrome":
                 ... # ChromiumUpdate
@@ -277,10 +277,10 @@ class GlobalFunction:
                 TimesFilePath = os.path.join(UserData["ProfilPath"],"times.json")
                 
                 LogModule.Say("--> ",(f"{'times.json':<20}",ConsoleColor.PURPLE),": ",("present",ConsoleColor.BOLD))
-                if ("created","firstUse") != tuple(TimesFile.keys()):
+                if not tuple(TimesFile.keys()) >= ("created","firstUse"):
                     raise ConfigError(f"times.json keys : '{tuple(TimesFile.keys())}' isn't equal to '{('created','firstUse')}'",
-                                        Details={"TimeKeys":tuple(TimesFile.keys()),"TimeKeysNeeded":tuple(TimesFile.keys())})
-                                        
+                                      Details={"TimeKeys":tuple(TimesFile.keys()),"TimeKeysNeeded":tuple(TimesFile.keys())})
+
                 for OptionalFile in FirefoxOptionalFiles:
                     LogModule.Say("--> ",(f"{OptionalFile:<20}",ConsoleColor.PURPLE),": ",(("present" if os.path.isfile(os.path.join(UserData["ProfilPath"],OptionalFile)) else "absent"),ConsoleColor.BOLD))
 

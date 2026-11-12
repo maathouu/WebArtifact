@@ -76,7 +76,7 @@ The first line of every file states the Version Agreement used for that file (*e
 - Each modification has a **title** and a **description**\
   The title is composed of **3 parts**:
   
-  - **Modification action**: a restricted keyword ( `Created` / `Deleted` / `Append` / `Modified` / `Renamed` / `Reworked` / `Fixed` / `Updated` )
+  - **Modification action**: a restricted keyword ( `Append` / `Created` / `Deleted` / `Fixed` / `Modified` / `Renamed` / `Reworked` / `Tested` /`Updated` )
   - **Modification type**: the type of file/section affected by the change ( ex: `Documentation` / `Function` / `Variable` / `Advertisement` / `Raise` )
   - **Modification section**: the location of the change, written as one or multiple paths separated by `&`, using `>` for classes/functions/variables/titles.  
     ( ex: `/WebArtifact/Global.py > Utility > Decompose() & /WebArtifact/WebDriver.py` )
